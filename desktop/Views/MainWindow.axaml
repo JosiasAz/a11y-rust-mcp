@@ -1,0 +1,463 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:A11yAgent.Desktop.ViewModels"
+        xmlns:m="using:A11yAgent.Desktop.Models"
+        x:Class="A11yAgent.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="A11y Agent — Assistente acessível"
+        Width="1360" Height="860"
+        MinWidth="1000" MinHeight="660"
+        Background="#F4F7FB"
+        FontSize="16">
+
+  <Design.DataContext>
+    <vm:MainViewModel/>
+  </Design.DataContext>
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding PickWorkspaceCommand}"/>
+    <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}"/>
+  </Window.KeyBindings>
+
+  <Window.Styles>
+    <!-- Cartões -->
+    <Style Selector="Border.card">
+      <Setter Property="Background" Value="#FFFFFF"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="BorderBrush" Value="#D7DEE8"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="16"/>
+    </Style>
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="19"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="#102A43"/>
+    </Style>
+    <Style Selector="TextBlock.muted, SelectableTextBlock.muted">
+      <Setter Property="Foreground" Value="#486581"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <!-- Botões: alvo mínimo de 44px, foco bem visível -->
+    <Style Selector="Button">
+      <Setter Property="MinHeight" Value="44"/>
+      <Setter Property="Padding" Value="16,10"/>
+      <Setter Property="FontSize" Value="16"/>
+    </Style>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="#0B6E4F"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#085A40"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="#E3EAF2"/>
+      <Setter Property="Foreground" Value="#102A43"/>
+    </Style>
+    <Style Selector="Button.danger">
+      <Setter Property="Background" Value="#9B1C1C"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#0B5394"/>
+      <Setter Property="Padding" Value="8,6"/>
+    </Style>
+    <Style Selector="Button.idea">
+      <Setter Property="Background" Value="#F0F4F8"/>
+      <Setter Property="BorderBrush" Value="#D7DEE8"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="VerticalAlignment" Value="Stretch"/>
+      <Setter Property="VerticalContentAlignment" Value="Top"/>
+      <Setter Property="Padding" Value="14,12"/>
+    </Style>
+    <Style Selector="Button, ListBoxItem, Expander">
+      <Setter Property="FocusAdorner">
+        <FocusAdornerTemplate>
+          <Border BorderBrush="#F5A623" BorderThickness="3" CornerRadius="10" Margin="-3"/>
+        </FocusAdornerTemplate>
+      </Setter>
+    </Style>
+
+    <!-- Lista da conversa: sem destaque de seleção, cada item é um cartão -->
+    <Style Selector="ListBox#ChatList ListBoxItem">
+      <Setter Property="Padding" Value="0,0,0,12"/>
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBox#ChatList ListBoxItem:selected /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBox#ChatList ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Bolhas -->
+    <Style Selector="Border.bubble">
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="14"/>
+      <Setter Property="Background" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#D7DEE8"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Border.bubble.user">
+      <Setter Property="Background" Value="#E6F2EE"/>
+      <Setter Property="BorderBrush" Value="#B7DCCD"/>
+      <Setter Property="Margin" Value="60,0,0,0"/>
+    </Style>
+    <Style Selector="Border.bubble.error">
+      <Setter Property="Background" Value="#FDECEA"/>
+      <Setter Property="BorderBrush" Value="#F1B5AE"/>
+    </Style>
+  </Window.Styles>
+
+  <DockPanel Margin="16">
+    <!-- ===== Topo ===== -->
+    <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+        <StackPanel Spacing="4">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Text="A11y Agent" FontSize="26" FontWeight="Bold" Foreground="#102A43"/>
+            <Border CornerRadius="8" Padding="10,4" VerticalAlignment="Center"
+                    Background="#D8F3DC"
+                    Classes.off="{Binding IsOffline}">
+              <Border.Styles>
+                <Style Selector="Border.off"><Setter Property="Background" Value="#FCE8E6"/></Style>
+              </Border.Styles>
+              <TextBlock Text="{Binding BadgeText}" FontSize="14" FontWeight="SemiBold" Foreground="#102A43"
+                         AutomationProperties.Name="{Binding BadgeText, StringFormat=Estado do assistente: {0}}"/>
+            </Border>
+          </StackPanel>
+          <TextBlock Text="Peça em português simples. Eu crio, edito e explico os arquivos para você."
+                     Classes="muted" FontSize="15"/>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Classes="danger" Content="Tentar ligar de novo"
+                  Command="{Binding CheckHealthCommand}"
+                  IsVisible="{Binding IsOffline}"
+                  AutomationProperties.HelpText="Tenta ligar o assistente outra vez"/>
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" IsVisible="{Binding HasModels}">
+            <TextBlock Text="Modelo" VerticalAlignment="Center" FontSize="15" Foreground="#334E68"/>
+            <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}"
+                      MinHeight="44" MinWidth="170" FontSize="15" VerticalContentAlignment="Center"
+                      IsEnabled="{Binding !IsBusy}"
+                      ToolTip.Tip="Modelos menores respondem mais rápido. Para instalar outro, no terminal: ollama pull nome-do-modelo"
+                      AutomationProperties.Name="Modelo de IA"
+                      AutomationProperties.HelpText="Escolhe qual modelo instalado no Ollama faz o trabalho. Modelos menores respondem mais rápido."/>
+            <Button Classes="link" Content="⟳" FontSize="18" Command="{Binding RefreshModelsCommand}"
+                    IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Atualizar lista de modelos"
+                    AutomationProperties.Name="Atualizar lista de modelos"/>
+          </StackPanel>
+          <Border IsVisible="{Binding HasWorkspace}" Background="#F0F4F8" CornerRadius="10" Padding="12,0"
+                  VerticalAlignment="Stretch">
+            <TextBlock VerticalAlignment="Center" FontSize="15" Foreground="#102A43"
+                       Text="{Binding WorkspaceName, StringFormat=📁 {0}}"
+                       ToolTip.Tip="{Binding WorkspacePath}"
+                       AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
+          </Border>
+          <Button Classes="secondary" Command="{Binding PickWorkspaceCommand}"
+                  IsEnabled="{Binding !IsBusy}"
+                  Content="{Binding FolderButtonText}"
+                  ToolTip.Tip="Atalho: Ctrl+O"
+                  AutomationProperties.HelpText="Escolhe a pasta onde o assistente pode criar e editar arquivos. Atalho Ctrl O."/>
+          <Button Classes="secondary" Content="Nova conversa" Command="{Binding NewConversationCommand}"
+                  IsVisible="{Binding HasConversation}" IsEnabled="{Binding !IsBusy}"/>
+        </StackPanel>
+
+        <!-- Status ao vivo: o leitor de tela anuncia cada mudança -->
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Spacing="8" Margin="0,10,0,0">
+          <TextBlock Text="{Binding StatusText}" FontSize="15" Foreground="#334E68" TextWrapping="Wrap"
+                     AutomationProperties.LiveSetting="Polite"
+                     AutomationProperties.Name="{Binding StatusText}"/>
+          <ProgressBar Height="4" IsIndeterminate="True" IsVisible="{Binding IsBusy}"
+                       AutomationProperties.Name="Trabalhando"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ===== Corpo: Arquivos | Conversa | Prévia ===== -->
+    <Grid ColumnDefinitions="240,*,380" ColumnSpacing="12">
+
+      <!-- Arquivos -->
+      <Border Classes="card" Padding="12">
+        <DockPanel>
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+            <TextBlock Text="Seus arquivos" Classes="h2" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Classes="link" Content="⟳" FontSize="18"
+                    Command="{Binding RefreshTreeCommand}" IsVisible="{Binding HasWorkspace}"
+                    ToolTip.Tip="Atualizar lista"
+                    AutomationProperties.Name="Atualizar lista de arquivos"/>
+          </Grid>
+          <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="0,0,0,8"
+                     IsVisible="{Binding !HasWorkspace}"
+                     Text="Nenhuma pasta aberta ainda. Escolha uma pasta para ver os arquivos aqui."/>
+          <TextBlock DockPanel.Dock="Bottom" Classes="muted" Margin="0,8,0,0" FontSize="13"
+                     IsVisible="{Binding HasWorkspace}"
+                     Text="Clique duas vezes ou aperte Enter para ver um arquivo."/>
+          <ListBox Name="FileList" ItemsSource="{Binding FileEntries}" FontSize="15"
+                   Background="Transparent"
+                   DoubleTapped="OnFileDoubleTapped" KeyDown="OnFileListKeyDown"
+                   AutomationProperties.Name="Lista de arquivos da pasta">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding}"/>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </DockPanel>
+      </Border>
+
+      <!-- Conversa -->
+      <Border Grid.Column="1" Classes="card" Padding="16">
+        <DockPanel>
+          <!-- Caixa de pedido -->
+          <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+            <TextBox Name="PromptBox"
+                     Text="{Binding PromptText}"
+                     PlaceholderText="Escreva aqui o que você precisa. Ex.: crie uma página sobre minha loja de café"
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     MinHeight="84" MaxHeight="220"
+                     FontSize="16" Background="#F8FAFC"
+                     IsEnabled="{Binding !IsBusy}"
+                     AutomationProperties.Name="Seu pedido"
+                     AutomationProperties.HelpText="Enter envia. Shift mais Enter pula linha."/>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Classes="muted" VerticalAlignment="Center" FontSize="13"
+                         Text="Enter envia · Shift+Enter pula linha · Esc cancela · Eu só mexo na pasta que você escolheu."/>
+              <Panel Grid.Column="1">
+                <Button Classes="primary" Content="Enviar pedido" MinWidth="180"
+                        Command="{Binding SendCommand}" IsEnabled="{Binding CanSend}"
+                        IsVisible="{Binding !IsBusy}"
+                        AutomationProperties.HelpText="Envia o pedido para o assistente"/>
+                <Button Classes="danger" Content="Cancelar" MinWidth="180"
+                        Command="{Binding CancelCommand}" IsVisible="{Binding IsBusy}"
+                        AutomationProperties.HelpText="Para o trabalho do assistente. Atalho Esc."/>
+              </Panel>
+            </Grid>
+          </StackPanel>
+
+          <Panel>
+            <!-- Boas-vindas (conversa vazia) -->
+            <ScrollViewer IsVisible="{Binding !HasConversation}">
+              <StackPanel Spacing="16" MaxWidth="740" HorizontalAlignment="Left" Margin="0,0,20,0">
+                <TextBlock Text="Olá! Como posso ajudar?" FontSize="24" FontWeight="Bold" Foreground="#102A43"/>
+                <TextBlock Classes="muted" FontSize="16"
+                           Text="Eu sou um assistente que cria e edita arquivos no seu computador. Você pede com suas palavras, eu mostro cada passo enquanto trabalho e, no final, explico o que fiz e como usar."/>
+
+                <TextBlock Text="Como funciona" Classes="h2"/>
+                <StackPanel Spacing="10">
+                  <Grid ColumnDefinitions="40,*,Auto">
+                    <Border Width="32" Height="32" CornerRadius="16" Background="#0B6E4F" VerticalAlignment="Top">
+                      <TextBlock Text="{Binding StepOneMark}"
+                                 Foreground="White" FontWeight="Bold"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                      <TextBlock Text="Escolha uma pasta" FontWeight="SemiBold" Foreground="#102A43"/>
+                      <TextBlock Classes="muted" IsVisible="{Binding !HasWorkspace}"
+                                 Text="É o único lugar onde eu posso mexer. Seus outros arquivos ficam seguros."/>
+                      <TextBlock Classes="muted" IsVisible="{Binding HasWorkspace}"
+                                 Text="{Binding WorkspaceName, StringFormat=Feito! Pasta escolhida: {0}}"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="primary" Content="Escolher pasta"
+                            Command="{Binding PickWorkspaceCommand}" IsVisible="{Binding !HasWorkspace}"/>
+                  </Grid>
+                  <Grid ColumnDefinitions="40,*">
+                    <Border Width="32" Height="32" CornerRadius="16" Background="#0B6E4F" VerticalAlignment="Top">
+                      <TextBlock Text="2" Foreground="White" FontWeight="Bold"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                      <TextBlock Text="Diga o que você quer" FontWeight="SemiBold" Foreground="#102A43"/>
+                      <TextBlock Classes="muted" Text="Escreva na caixa lá embaixo, do seu jeito. Ou escolha uma ideia abaixo."/>
+                    </StackPanel>
+                  </Grid>
+                  <Grid ColumnDefinitions="40,*">
+                    <Border Width="32" Height="32" CornerRadius="16" Background="#0B6E4F" VerticalAlignment="Top">
+                      <TextBlock Text="3" Foreground="White" FontWeight="Bold"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                      <TextBlock Text="Acompanhe e confira" FontWeight="SemiBold" Foreground="#102A43"/>
+                      <TextBlock Classes="muted" Text="Você vê cada passo ao vivo. Os arquivos que eu criar abrem na prévia à direita."/>
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+
+                <TextBlock Text="Ideias para começar" Classes="h2"/>
+                <ItemsControl ItemsSource="{Binding Examples}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ExampleIdea">
+                      <Button Classes="idea" Margin="0,0,8,8"
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).UseExampleCommand}"
+                              CommandParameter="{Binding}"
+                              AutomationProperties.Name="{Binding Title, StringFormat=Usar ideia: {0}}"
+                              AutomationProperties.HelpText="{Binding Description}">
+                        <StackPanel Spacing="2">
+                          <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#102A43" TextWrapping="Wrap"/>
+                          <TextBlock Text="{Binding Description}" Classes="muted"/>
+                        </StackPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+
+            <!-- Mensagens -->
+            <ListBox Name="ChatList" ItemsSource="{Binding Messages}"
+                     IsVisible="{Binding HasConversation}"
+                     Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     AutomationProperties.Name="Conversa. Use as setas para ouvir cada mensagem.">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}" x:DataType="m:ChatMessage">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding AccessibleName}"/>
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="m:ChatMessage">
+                  <Border Classes="bubble" Classes.user="{Binding IsUser}" Classes.error="{Binding IsError}">
+                    <StackPanel Spacing="8">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="16" Foreground="#102A43"/>
+                        <ProgressBar IsIndeterminate="True" Width="60" Height="4" MinWidth="0"
+                                     VerticalAlignment="Center" IsVisible="{Binding IsWorking}"/>
+                        <TextBlock Text="{Binding Elapsed}" Classes="muted" VerticalAlignment="Center"
+                                   IsVisible="{Binding IsWorking}"
+                                   AutomationProperties.Name="{Binding Elapsed, StringFormat=Tempo trabalhando: {0}}"/>
+                      </StackPanel>
+
+                      <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="16"
+                                           Foreground="#102A43" LineHeight="24"
+                                           IsVisible="{Binding HasText}"/>
+
+                      <!-- Plano: ○ esperando · … fazendo · ✓ feito -->
+                      <Border IsVisible="{Binding HasPlan}" Background="#F4F8FB" CornerRadius="10" Padding="12,10">
+                        <ItemsControl ItemsSource="{Binding Plan}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="m:ChatStep">
+                              <Grid ColumnDefinitions="28,*" Margin="0,4"
+                                    AutomationProperties.Name="{Binding AccessibleName}">
+                                <TextBlock Text="{Binding Icon}" FontSize="16" FontWeight="Bold" Foreground="#0B6E4F"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" FontSize="16"
+                                           Foreground="#102A43" Classes.current="{Binding IsCurrent}">
+                                  <TextBlock.Styles>
+                                    <Style Selector="TextBlock.current"><Setter Property="FontWeight" Value="SemiBold"/></Style>
+                                  </TextBlock.Styles>
+                                </TextBlock>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </Border>
+
+                      <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsAwaitingApproval}">
+                        <Button Classes="primary" Content="Começar"
+                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).StartPlanCommand}"
+                                CommandParameter="{Binding}"
+                                AutomationProperties.HelpText="Aprova o plano e começa a primeira etapa"/>
+                        <Button Classes="secondary" Content="Descartar plano"
+                                Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).DiscardPlanCommand}"
+                                CommandParameter="{Binding}"
+                                AutomationProperties.HelpText="Descarta o plano para você escrever o pedido de outro jeito"/>
+                      </StackPanel>
+
+                      <!-- Pergunta do agente: cada opção é um botão -->
+                      <ItemsControl ItemsSource="{Binding Options}" IsVisible="{Binding HasOptions}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="m:ChatOption">
+                            <Button Classes="idea" Margin="0,0,8,8" HorizontalAlignment="Left"
+                                    Content="{Binding Text}"
+                                    Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).ChooseOptionCommand}"
+                                    CommandParameter="{Binding}"
+                                    AutomationProperties.Name="{Binding Text, StringFormat=Escolher: {0}}"/>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- Ações de arquivo ao vivo -->
+                      <ItemsControl ItemsSource="{Binding Steps}" IsVisible="{Binding HasSteps}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="m:ChatStep">
+                            <Grid ColumnDefinitions="24,*" Margin="0,2"
+                                  AutomationProperties.Name="{Binding AccessibleName}">
+                              <TextBlock Text="{Binding Icon}" FontWeight="Bold" Foreground="#0B6E4F"/>
+                              <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
+                                         Foreground="#334E68" FontSize="15"/>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock Text="{Binding CurrentActivity}" Classes="muted" FontStyle="Italic"
+                                 IsVisible="{Binding IsWorking}"/>
+
+                      <!-- Arquivos alterados -->
+                      <StackPanel Spacing="4" IsVisible="{Binding HasChangedFiles}">
+                        <TextBlock Text="Arquivos criados ou alterados" FontWeight="SemiBold" FontSize="14" Foreground="#102A43"/>
+                        <ItemsControl ItemsSource="{Binding ChangedFiles}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                              <Button Classes="secondary" Margin="0,0,8,8" FontSize="14"
+                                      Content="{Binding Converter={x:Static vm:Ui.FileButton}}"
+                                      ToolTip.Tip="{Binding}"
+                                      Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).OpenFileCommand}"
+                                      CommandParameter="{Binding}"
+                                      AutomationProperties.Name="{Binding Path=., StringFormat=Abrir arquivo {0} na prévia}"/>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+
+                      <Expander Header="Detalhe técnico" IsVisible="{Binding HasDetail}" FontSize="14">
+                        <SelectableTextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="13"
+                                             FontFamily="Consolas, Cascadia Mono, monospace"/>
+                      </Expander>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Panel>
+        </DockPanel>
+      </Border>
+
+      <!-- Prévia -->
+      <Border Grid.Column="2" Classes="card" Padding="12">
+        <DockPanel>
+          <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,8">
+            <TextBlock Text="Prévia do arquivo" Classes="h2"/>
+            <TextBlock Text="{Binding SelectedFile}" Classes="muted" IsVisible="{Binding HasPreview}"/>
+          </StackPanel>
+          <Panel>
+            <TextBlock Classes="muted" IsVisible="{Binding !HasPreview}" FontSize="15"
+                       Text="Aqui aparece o conteúdo dos arquivos. Quando eu criar ou alterar um arquivo, ele abre aqui sozinho."/>
+            <TextBox Text="{Binding FileContent}" IsVisible="{Binding HasPreview}"
+                     AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True"
+                     FontFamily="Consolas, Cascadia Mono, monospace" FontSize="14"
+                     Background="#F8FAFC" Foreground="#102A43" BorderThickness="0"
+                     AutomationProperties.Name="{Binding SelectedFile, StringFormat='Conteúdo do arquivo {0} (somente leitura)'}"/>
+          </Panel>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </DockPanel>
+</Window>
