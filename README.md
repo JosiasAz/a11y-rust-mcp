@@ -23,6 +23,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/JosiasAz/a11y-rust-mcp/releases/latest">
+    <img src="https://img.shields.io/badge/Baixar-para%20Windows-8A3B12?style=for-the-badge" alt="Baixar o Uirapuru para Windows">
+  </a>
+</p>
+
+<p align="center">
   <a href="#começar-a-usar">Começar a usar</a> ·
   <a href="#usar-via-mcp">Usar via MCP</a> ·
   <a href="#por-dentro">Por dentro</a> ·
@@ -141,7 +147,8 @@ Você precisa do **[Ollama](https://ollama.com/download)**, o programa que roda 
 
 Depois:
 
-1. Instale o Uirapuru com o `Uirapuru-Setup-<versão>.exe`. Abra o Ollama e depois o **Uirapuru** pelo menu Iniciar.
+1. Baixe o `Uirapuru-Setup-<versão>.exe` na [página de versões](https://github.com/JosiasAz/a11y-rust-mcp/releases/latest) e instale. Abra o Ollama e depois o **Uirapuru** pelo menu Iniciar.
+   O instalador é assinado com um certificado de teste, então o Windows pode mostrar "O Windows protegeu o computador": clique em **Mais informações → Executar assim mesmo**. Para conferir o arquivo, compare o SHA-256 publicado junto na versão.
 2. Clique em **Escolher pasta**.
 3. Escreva o pedido e aperte **Enter**.
 4. Em menos de um minuto aparece **Meu plano**, com as etapas. Se estiver bom, clique em **Começar**. Se o pedido for ambíguo, o agente pergunta antes ("janela no computador ou página web?") e você responde com um clique.
