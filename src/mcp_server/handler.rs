@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
-    model::{ServerCapabilities, ServerConfig},
+    model::{Implementation, ServerCapabilities, ServerConfig},
     tool, tool_handler, tool_router, ServerHandler,
 };
 use tracing::error;
@@ -141,10 +141,16 @@ fn fs_call<T: serde::Serialize>(server: &A11yMcpServer, name: &str, args: T) -> 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for A11yMcpServer {
     fn get_info(&self) -> ServerConfig {
+        // Nome que os clientes MCP mostram (sem isso aparece o da biblioteca, "rmcp").
+        let mut info = Implementation::new("uirapuru", env!("CARGO_PKG_VERSION"));
+        info.title = Some("Uirapuru".into());
+        info.description = Some("Agente de IA acessível: linguagem simples e ferramentas de arquivo restritas a uma pasta.".into());
+        info.website_url = Some("https://github.com/JosiasAz/a11y-rust-mcp".into());
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
+            .with_server_info(info)
             .with_instructions(
-                "Rust-A11y-Agent: acessibilidade cognitiva + agente de código \
-                 (read/write/edit/list/mkdir/glob/grep/terminal/structure) sandboxed no workspace.",
+                "Uirapuru: acessibilidade cognitiva (simplificar_texto, verificar_compreensao, criar_lembrete) \
+                 e ferramentas de arquivo/terminal restritas à pasta A11Y_WORKSPACE.",
             )
     }
 }

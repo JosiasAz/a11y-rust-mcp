@@ -1,6 +1,53 @@
-# A11y Agent
+<p align="center">
+  <img src="docs/logo-uirapuru.png" width="128" height="128" alt="Logo do Uirapuru: um pássaro uirapuru cor de ferrugem, com a garganta dourada e uma nota musical, sobre fundo marrom-escuro.">
+</p>
 
-Um agente de IA que trabalha no seu computador e **explica o que fez**, para quem nunca abriu um terminal.
+<h1 align="center">Uirapuru</h1>
+
+<p align="center">
+  <strong>Um agente de IA que trabalha no seu computador e explica o que fez, para quem nunca abriu um terminal.</strong><br>
+  Roda 100% local com o Ollama. Feito em Manaus, Amazonas.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/vers%C3%A3o-0.1.0-8A3B12" alt="Versão 0.1.0">
+  <img src="https://img.shields.io/badge/Rust-1.89%2B-21170F?logo=rust&logoColor=white" alt="Rust 1.89 ou mais novo">
+  <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET 10">
+  <img src="https://img.shields.io/badge/Avalonia-12-8B44AC" alt="Avalonia 12">
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011%20(x64)-0078D4" alt="Windows 10 e 11, 64 bits">
+  <br>
+  <img src="https://img.shields.io/badge/MCP-stdio%20%7C%20HTTP-1F6B4F" alt="Servidor MCP via stdio e HTTP">
+  <img src="https://img.shields.io/badge/IA%20local-Ollama-21170F?logo=ollama&logoColor=white" alt="IA local com Ollama">
+  <img src="https://img.shields.io/badge/contraste-WCAG%20AA%20medido-1F6B4F" alt="Contraste WCAG AA medido">
+  <img src="https://img.shields.io/badge/licen%C3%A7a-MIT-4E3B2E" alt="Licença MIT">
+</p>
+
+<p align="center">
+  <a href="#começar-a-usar">Começar a usar</a> ·
+  <a href="#usar-via-mcp">Usar via MCP</a> ·
+  <a href="#por-dentro">Por dentro</a> ·
+  <a href="#o-que-ainda-não-está-bom">Limites conhecidos</a> ·
+  <a href="#licença">Licença</a>
+</p>
+
+![Tela inicial do Uirapuru. No topo, uma barra de título marrom-escura de ponta a ponta com o logo do pássaro uirapuru, o nome "Uirapuru", o selo dourado "MANAUS", o texto "Nenhuma pasta aberta", o selo de estado "Pronto" e os botões de minimizar, maximizar e fechar. À esquerda, a barra lateral da mesma cor com o botão dourado "Nova conversa", o cartão "Nenhuma pasta ainda" com o botão "Escolher pasta" e, embaixo, o seletor de modelo de IA. À direita, em fundo bege-claro, a faixa de status, a saudação "Olá! Eu sou o Uirapuru.", quatro ideias de pedido e o aviso de que tudo roda no computador. Embaixo, a caixa de pedido com os botões "Escolher pasta" e "Enviar pedido", este em cor de ferrugem.](docs/tela-inicial.png)
+
+## Destaques
+
+- **Linguagem simples:** cada ação vira uma frase ("Escrevendo arquivo: index.html"), e a resposta final sempre diz o que foi feito e como conferir.
+- **Plano antes de agir:** o agente mostra as etapas e só começa depois do seu clique. Se o pedido for ambíguo, ele pergunta.
+- **Só mexe na pasta que você escolher:** caminhos fora dela são recusados, inclusive por atalhos (symlinks e junctions).
+- **Privado:** a IA roda no seu computador. A API local exige um token novo a cada início e só escuta em `127.0.0.1`.
+- **Feito para leitor de tela:** o progresso é anunciado ao vivo, o foco tem contraste de pelo menos 3:1 e a fonte é a Atkinson Hyperlegible.
+- **Também é servidor MCP:** Claude Desktop, Claude Code, Cursor e outros clientes podem usar as mesmas ferramentas.
+
+## Requisitos
+
+| Para usar | Para desenvolver |
+| --- | --- |
+| Windows 10 ou 11, 64 bits | Rust **1.89** ou mais novo |
+| [Ollama](https://ollama.com/download) | .NET SDK **10** |
+| Cerca de 5 GB livres para o modelo `qwen2.5:7b` (8 GB de RAM ou mais recomendados) | Inno Setup 6 e `signtool` do Windows SDK (só para gerar o instalador) |
 
 ---
 
@@ -67,10 +114,6 @@ Tudo fica no seu computador. Nada vai para a internet.
 
 ---
 
-![Tela inicial do Uirapuru. À esquerda, uma barra lateral marrom-escura com o logo do pássaro uirapuru, o botão dourado "Nova conversa", o cartão "Nenhuma pasta ainda" com o botão "Escolher pasta" e, embaixo, o seletor de modelo de IA e o estado "Pronto". À direita, em fundo bege-claro, a saudação "Olá! Eu sou o Uirapuru.", quatro ideias de pedido e o aviso de que tudo roda no computador. Embaixo, a caixa de pedido com os botões "Escolher pasta" e "Enviar pedido", este em cor de ferrugem.](docs/tela-inicial.png)
-
----
-
 ## Cinco regras que o código segue
 
 Cada regra aponta para o lugar do código onde ela está implementada, para você conferir.
@@ -101,8 +144,8 @@ Depois:
 1. Instale o Uirapuru com o `Uirapuru-Setup-<versão>.exe`. Abra o Ollama e depois o **Uirapuru** pelo menu Iniciar.
 2. Clique em **Escolher pasta**.
 3. Escreva o pedido e aperte **Enter**.
-4. Em menos de um minuto aparece **Meu plano**, com as etapas. Se estiver bom, clique em **Começar**. Se o pedido for ambíguo, o assistente pergunta antes ("janela no computador ou página web?") e você responde com um clique.
-5. Acompanhe: cada etapa vai de ○ para … e depois para ✓, e o cartão mostra há quanto tempo o assistente está trabalhando.
+4. Em menos de um minuto aparece **Meu plano**, com as etapas. Se estiver bom, clique em **Começar**. Se o pedido for ambíguo, o agente pergunta antes ("janela no computador ou página web?") e você responde com um clique.
+5. Acompanhe: cada etapa vai de ○ para … e depois para ✓, e o cartão mostra há quanto tempo o agente está trabalhando.
 
 Na barra lateral, em **Modelo de IA**, você escolhe qualquer modelo instalado no Ollama. Modelos menores respondem mais rápido. Para instalar outro, digite no terminal `ollama pull nome-do-modelo` e clique em ⟳.
 
@@ -160,13 +203,58 @@ Com o certificado de teste, o Windows mostra o editor, mas ainda avisa "Editor d
 
 ---
 
+## Usar via MCP
+
+O mesmo executável do agente é um servidor [MCP](https://modelcontextprotocol.io) (Model Context Protocol). Assim, Claude Desktop, Claude Code, Cursor e outros clientes usam as ferramentas do Uirapuru. Ele se apresenta como `uirapuru`.
+
+Depois de instalar, o executável fica em `%LOCALAPPDATA%\Programs\Uirapuru\agent\rust-a11y-agent.exe`.
+
+**Claude Desktop, Cursor e similares** (configuração MCP do cliente):
+
+```json
+{
+  "mcpServers": {
+    "uirapuru": {
+      "command": "C:\\Users\\SEU_USUARIO\\AppData\\Local\\Programs\\Uirapuru\\agent\\rust-a11y-agent.exe",
+      "args": ["mcp-server"],
+      "env": {
+        "A11Y_WORKSPACE": "C:\\caminho\\da\\pasta\\permitida",
+        "LLM_MODEL": "qwen2.5:7b"
+      }
+    }
+  }
+}
+```
+
+**Claude Code:**
+
+```powershell
+claude mcp add uirapuru --env A11Y_WORKSPACE="C:\caminho\da\pasta" --env LLM_MODEL=qwen2.5:7b -- "$env:LOCALAPPDATA\Programs\Uirapuru\agent\rust-a11y-agent.exe" mcp-server
+```
+
+**Por HTTP** (clientes que se conectam por URL): rode `rust-a11y-agent.exe mcp-http --bind 127.0.0.1:8000`. Ao iniciar, ele imprime `A11Y_API_TOKEN=<token>`; configure o cliente com a URL `http://127.0.0.1:8000/mcp` e o header `Authorization: Bearer <token>`. O token muda a cada início.
+
+| Ferramenta | O que faz |
+| --- | --- |
+| `simplificar_texto` | Reescreve um texto difícil em linguagem simples (usa o modelo do Ollama) |
+| `verificar_compreensao` | Confere se um texto ficou compreensível, por partes (usa o modelo) |
+| `criar_lembrete` | Cria um lembrete curto e claro |
+| `read_file`, `write_file`, `str_replace` | Lê, cria e edita arquivos |
+| `list_dir`, `mkdir`, `delete_path`, `create_structure` | Lista, cria e apaga pastas e arquivos |
+| `glob_files`, `grep_search` | Procura arquivos por nome e texto |
+| `run_terminal` | Roda um comando na pasta (veja o aviso abaixo) |
+
+Todas as ferramentas ficam presas à pasta `A11Y_WORKSPACE`. Se ela não for definida, vale a pasta de onde o cliente abriu o processo. **`run_terminal` executa comandos de verdade:** no modo padrão, só a pasta inicial e o tempo-limite limitam o comando. Para isolar de fato, adicione `"A11Y_SANDBOX": "docker"` no `env` (precisa do Docker Desktop aberto).
+
+---
+
 ## O que ainda não está bom
 
 Este projeto quer servir de referência em acessibilidade, então os limites ficam à vista:
 
-- **No app, o assistente não roda comandos no terminal.** Ele cria e edita arquivos, e a explicação final diz como abrir o resultado. Nos modos `chat` e MCP o `run_terminal` continua disponível. Por padrão ele roda no shell local (`A11Y_SANDBOX=host`), que **não isola nada** além da pasta inicial e do tempo-limite. Com `A11Y_SANDBOX=docker` o comando roda num container sem rede que só enxerga a pasta.
+- **No app, o agente não roda comandos no terminal.** Ele cria e edita arquivos, e a explicação final diz como abrir o resultado. Nos modos `chat` e MCP o `run_terminal` continua disponível. Por padrão ele roda no shell local (`A11Y_SANDBOX=host`), que **não isola nada** além da pasta inicial e do tempo-limite. Com `A11Y_SANDBOX=docker` o comando roda num container sem rede que só enxerga a pasta.
 - **O `mcp-http` usa HTTP sem TLS.** O token protege contra quem não o conhece, mas na rede local ele passa em texto aberto. Prefira `127.0.0.1`.
-- **Ainda não houve teste com NVDA, Narrador nem com pessoas usuárias.** Tudo acima é intenção de projeto, não resultado medido. A única exceção são os contrastes de texto (14,6:1, 6,3:1 e 6,1:1), que foram medidos.
+- **Ainda não houve teste com NVDA, Narrador nem com pessoas usuárias.** Tudo acima é intenção de projeto, não resultado medido. A única exceção são os contrastes, que foram medidos: texto principal 13,2:1, texto de apoio 8,5:1 e 5,7:1, botão de ação 7,7:1 e anel de foco 5,8:1 (os valores estão comentados em `desktop/App.axaml`).
 - **Modelos pequenos erram e usam jargão**, como o "diretório raiz" da conversa lá em cima.
 
 Se você usa leitor de tela, tem deficiência cognitiva ou trabalha com quem tem, o seu relato vale mais que qualquer código. Abra uma *issue* contando o que aconteceu, sem precisar saber programar.
@@ -194,7 +282,7 @@ sequenceDiagram
     UI-->>P: cartão com ✓, botão do arquivo e explicação
 ```
 
-A mesma caixa de ferramentas também está disponível via **MCP** (Model Context Protocol). Assim, Claude Desktop, Cursor e outros clientes podem usar `simplificar_texto` e `verificar_compreensao`.
+A mesma caixa de ferramentas também está disponível via **MCP**; veja [Usar via MCP](#usar-via-mcp).
 
 <details>
 <summary><strong>Compilar, testar e estrutura do código</strong></summary>

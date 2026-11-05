@@ -2,6 +2,8 @@
 name = "rust-a11y-agent"
 version = "0.1.0"
 edition = "2021"
+# Mínimo exigido pelas dependências (uuid 1.29 pede 1.89).
+rust-version = "1.89"
 description = "Agente de IA em Rust para acessibilidade cognitiva com ponte MCP"
 license = "MIT"
 readme = "README.md"

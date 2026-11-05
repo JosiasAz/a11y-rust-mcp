@@ -57,6 +57,15 @@ public partial class MainWindow : Window
         this.FindControl<TextBox>("PromptBox")?.Focus();
     }
 
+    // Botões da barra de título própria. O mouse é tratado pelo Windows (papel na barra);
+    // estes Click atendem o teclado (Tab até o botão + Enter/Espaço).
+    private void OnMinimizeClick(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void OnMaximizeClick(object? sender, RoutedEventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
+
     private async void OnFileDoubleTapped(object? sender, TappedEventArgs e) => await OpenSelectedFile(sender);
 
     private async void OnFileListKeyDown(object? sender, KeyEventArgs e)

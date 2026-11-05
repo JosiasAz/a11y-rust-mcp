@@ -2,10 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:A11yAgent.Desktop.ViewModels"
         xmlns:m="using:A11yAgent.Desktop.Models"
+        xmlns:chrome="using:Avalonia.Controls.Chrome"
         x:Class="A11yAgent.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Uirapuru — assistente acessível"
         Icon="/Assets/uirapuru.ico"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="44"
+        WindowDecorations="BorderOnly"
         Width="1360" Height="860"
         MinWidth="1000" MinHeight="660"
         Background="{StaticResource Nevoa}"
@@ -158,6 +162,30 @@
     <Style Selector="Border.pasta.cheia">
       <Setter Property="VerticalAlignment" Value="Stretch"/>
     </Style>
+    <!-- Botões da barra de título (46×44, como os do Windows; fechar fica vermelho no hover) -->
+    <Style Selector="Button.legenda">
+      <Setter Property="Width" Value="46"/>
+      <Setter Property="Height" Value="44"/>
+      <Setter Property="MinHeight" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.legenda:pointerover /template/ ContentPresenter, Button.legenda:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource MataSel}"/>
+      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+    </Style>
+    <Style Selector="Button.legenda.fechar:pointerover /template/ ContentPresenter, Button.legenda.fechar:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#C42B1C"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.legenda.fechar:pointerover, Button.legenda.fechar:pressed">
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+
     <Style Selector="ListBox#FileList ListBoxItem">
       <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
       <Setter Property="Padding" Value="10,8"/>
@@ -210,15 +238,20 @@
     <Style Selector="TextBlock.icone.falhou"><Setter Property="Foreground" Value="{StaticResource Acai}"/></Style>
   </Window.Styles>
 
-  <Grid ColumnDefinitions="272,*">
+  <DockPanel>
 
-    <!-- ================= Barra lateral (mata de igapó) ================= -->
-    <Border Classes="lateral" Background="{StaticResource Mata}" Padding="18,20">
-      <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Spacing="20">
-          <!-- Marca: logo do uirapuru (decorativo; o nome vem logo ao lado) -->
-          <StackPanel Orientation="Horizontal" Spacing="12">
-            <Viewbox Width="44" Height="44" AutomationProperties.AccessibilityView="Raw">
+  <!--
+    ================= Barra de título própria (Rio Negro, emendada com a barra lateral) =================
+    O Windows continua cuidando de arrastar, clique duplo para maximizar e dos layouts de encaixe:
+    cada parte diz o seu papel com chrome:WindowDecorationProperties.ElementRole.
+  -->
+  <Border DockPanel.Dock="Top" Classes="lateral" Height="44" Background="{StaticResource Mata}"
+          chrome:WindowDecorationProperties.ElementRole="TitleBar">
+    <Grid ColumnDefinitions="272,*,Auto">
+      <!-- Marca (decorativa para o leitor de tela: o título da janela já diz "Uirapuru") -->
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="18,0,0,0" VerticalAlignment="Center"
+                  IsHitTestVisible="False" AutomationProperties.AccessibilityView="Raw">
+            <Viewbox Width="26" Height="26">
               <Canvas Width="64" Height="64">
                 <Rectangle Width="64" Height="64" RadiusX="16" RadiusY="16" Fill="#3A2B20"/>
                 <Path Data="M22.5,36 L7,17.5 Q9,13.5 13.5,15 L26,31 Z" Fill="#8A3B12"/>
@@ -235,12 +268,70 @@
                 <Ellipse Canvas.Left="54" Canvas.Top="12.9" Width="4.6" Height="4.6" Fill="#E9B872"/>
               </Canvas>
             </Viewbox>
-            <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="Uirapuru" FontSize="20" FontWeight="Bold" Foreground="{StaticResource MataTexto}"/>
-              <TextBlock Text="feito em Manaus" FontSize="13" Foreground="{StaticResource MataTexto2}"/>
-            </StackPanel>
-          </StackPanel>
+            <TextBlock Text="Uirapuru" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
+                       Foreground="{StaticResource MataTexto}"/>
+            <Border Background="{StaticResource MataSel}" CornerRadius="6" Padding="7,1" VerticalAlignment="Center">
+              <TextBlock Text="MANAUS" FontSize="10.5" FontWeight="Bold" LetterSpacing="1"
+                         Foreground="{StaticResource Garganta}"/>
+            </Border>
+      </StackPanel>
 
+      <!-- Onde estou e como está: pasta aberta + estado do agente -->
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" Margin="32,0,0,0" VerticalAlignment="Center">
+        <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
+                   Foreground="{StaticResource MataTexto}" FontWeight="Bold"
+                   Text="{Binding WorkspaceName, StringFormat=📁  {0}}" IsVisible="{Binding HasWorkspace}"
+                   AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
+        <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
+                   Foreground="{StaticResource MataTexto2}" Text="Nenhuma pasta aberta" IsVisible="{Binding !HasWorkspace}"/>
+        <Border Background="{StaticResource MataSel}" CornerRadius="999" Padding="10,3" VerticalAlignment="Center"
+                IsHitTestVisible="False">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource Garganta}"
+                     Classes.off="{Binding IsOffline}">
+              <Ellipse.Styles>
+                <Style Selector="Ellipse.off"><Setter Property="Fill" Value="#E8A0B4"/></Style>
+              </Ellipse.Styles>
+            </Ellipse>
+            <TextBlock Text="{Binding BadgeText}" FontSize="13" Foreground="{StaticResource MataTexto}"
+                       AutomationProperties.Name="{Binding BadgeText, StringFormat=Estado do agente: {0}}"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <!-- Botões da janela. O papel faz o Windows tratar o clique do mouse (inclui os layouts de encaixe
+           do Windows 11 no maximizar); o Click atende quem usa teclado. -->
+      <StackPanel Grid.Column="2" Orientation="Horizontal">
+        <Button Classes="legenda" Click="OnMinimizeClick" ToolTip.Tip="Minimizar"
+                chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
+                AutomationProperties.Name="Minimizar">
+          <Path Data="M0,0.5 H10" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1"/>
+        </Button>
+        <Button Classes="legenda" Click="OnMaximizeClick" ToolTip.Tip="Maximizar ou restaurar"
+                chrome:WindowDecorationProperties.ElementRole="MaximizeButton"
+                AutomationProperties.Name="Maximizar ou restaurar">
+          <Panel>
+            <Path Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1"
+                  IsVisible="{Binding $parent[Window].WindowState, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static WindowState.Maximized}}"/>
+            <Path Data="M2.5,2.5 H9.5 V9.5 H2.5 Z M2.5,0.5 H11.5 V9.5" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1"
+                  IsVisible="{Binding $parent[Window].WindowState, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static WindowState.Maximized}}"/>
+          </Panel>
+        </Button>
+        <Button Classes="legenda fechar" Click="OnCloseClick" ToolTip.Tip="Fechar"
+                chrome:WindowDecorationProperties.ElementRole="CloseButton"
+                AutomationProperties.Name="Fechar">
+          <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1"/>
+        </Button>
+      </StackPanel>
+    </Grid>
+  </Border>
+
+  <Grid ColumnDefinitions="272,*">
+
+    <!-- ================= Barra lateral (mata de igapó) ================= -->
+    <Border Classes="lateral" Background="{StaticResource Mata}" Padding="18,12,18,20">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Spacing="20">
           <Button Classes="nova" Content="+  Nova conversa" Command="{Binding NewConversationCommand}"
                   IsEnabled="{Binding !IsBusy}"
                   AutomationProperties.HelpText="Limpa a conversa para começar um pedido novo"/>
@@ -264,16 +355,7 @@
                       AutomationProperties.Name="Atualizar lista de modelos"/>
             </Grid>
           </StackPanel>
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Ellipse Width="10" Height="10" VerticalAlignment="Center" Fill="{StaticResource Garganta}"
-                     Classes.off="{Binding IsOffline}">
-              <Ellipse.Styles>
-                <Style Selector="Ellipse.off"><Setter Property="Fill" Value="#E8A0B4"/></Style>
-              </Ellipse.Styles>
-            </Ellipse>
-            <TextBlock Text="{Binding BadgeText}" FontSize="14" Foreground="{StaticResource MataTexto2}"
-                       AutomationProperties.Name="{Binding BadgeText, StringFormat=Estado do assistente: {0}}"/>
-          </StackPanel>
+          <TextBlock Text="Feito em Manaus, Amazonas" FontSize="12.5" Foreground="{StaticResource MataTexto2}"/>
         </StackPanel>
 
         <!-- Cartão da pasta -->
@@ -645,4 +727,5 @@
       </DockPanel>
     </DockPanel>
   </Grid>
+  </DockPanel>
 </Window>
