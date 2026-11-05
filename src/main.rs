@@ -33,6 +33,9 @@ enum Commands {
     McpHttp {
         #[arg(long, default_value = "127.0.0.1:8000")]
         bind: String,
+        /// Permite escutar fora do loopback (ex.: 0.0.0.0). Expõe arquivos e terminal na rede.
+        #[arg(long, default_value_t = false)]
+        allow_remote: bool,
     },
     /// API HTTP para o desktop Avalonia.
     ServeApi {
@@ -66,9 +69,9 @@ async fn main() -> Result<()> {
                 .await
                 .context("servidor MCP stdio encerrou com erro")?;
         }
-        Commands::McpHttp { bind } => {
-            info!(%bind, "modo mcp-http");
-            run_mcp_http(&bind)
+        Commands::McpHttp { bind, allow_remote } => {
+            info!(%bind, allow_remote, "modo mcp-http");
+            run_mcp_http(&bind, allow_remote)
                 .await
                 .context("servidor MCP HTTP encerrou com erro")?;
         }

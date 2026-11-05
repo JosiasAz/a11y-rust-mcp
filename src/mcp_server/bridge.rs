@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use rmcp::{
@@ -26,14 +28,21 @@ pub struct McpToolSession {
 
 impl McpToolSession {
     /// Spawna o próprio binário em modo `mcp-server` e faz handshake MCP.
-    pub async fn spawn_self() -> Result<Self> {
+    ///
+    /// `workspace` é repassado ao filho como `A11Y_WORKSPACE`; sem isso o filho usaria a
+    /// variável herdada ou a pasta atual, e não a pasta escolhida em `chat --workspace`.
+    pub async fn spawn_self(workspace: Option<&Path>) -> Result<Self> {
         let exe = std::env::current_exe().context("não foi possível resolver current_exe")?;
-        info!(?exe, "iniciando servidor MCP filho (stdio)");
+        let workspace = workspace.map(Path::to_path_buf);
+        info!(?exe, ?workspace, "iniciando servidor MCP filho (stdio)");
 
-        let transport = TokioChildProcess::new(Command::new(exe).configure(|cmd| {
+        let transport = TokioChildProcess::new(Command::new(exe).configure(move |cmd| {
             cmd.arg("mcp-server");
             // Evita misturar logs do filho com o protocolo se o filtro for muito verboso no stdout.
             cmd.env("RUST_LOG", "warn,rust_a11y_agent=info");
+            if let Some(ws) = &workspace {
+                cmd.env("A11Y_WORKSPACE", ws);
+            }
         }))
         .context("falha ao criar transporte stdio do processo filho")?;
 

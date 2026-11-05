@@ -8,10 +8,10 @@ use rmcp::{
     },
     ServiceExt,
 };
-use tracing::info;
+use tracing::{info, warn};
 
 use super::handler::A11yMcpServer;
-use crate::api::auth::{require_bearer, ApiToken};
+use crate::api::auth::{ensure_loopback, require_bearer, ApiToken};
 use crate::agent::workspace::Workspace;
 use crate::llm::shared_openai_compatible_from_env;
 
@@ -38,8 +38,22 @@ pub async fn run_mcp_server() -> Result<()> {
     Ok(())
 }
 
-/// Servidor MCP Streamable HTTP (compartilhável em rede local).
-pub async fn run_mcp_http(bind: &str) -> Result<()> {
+/// Servidor MCP Streamable HTTP.
+///
+/// Expõe `run_terminal`, `write_file` e `delete_path` por HTTP sem TLS, então por padrão só
+/// escuta em loopback. Escutar na rede exige `allow_remote` (flag `--allow-remote`).
+pub async fn run_mcp_http(bind: &str, allow_remote: bool) -> Result<()> {
+    if allow_remote {
+        warn!(
+            %bind,
+            "--allow-remote ativo: as ferramentas de arquivo/terminal ficam acessíveis pela rede, \
+             e o token trafega sem criptografia"
+        );
+    } else {
+        ensure_loopback(bind).context(
+            "para escutar fora do loopback, passe --allow-remote (entenda os riscos no README)",
+        )?;
+    }
     info!(%bind, "MCP server (rmcp / streamable HTTP) iniciando");
     let llm = Arc::new(shared_openai_compatible_from_env()?);
     let workspace = workspace_from_env()?;

@@ -10,7 +10,8 @@
 
 use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
+use std::sync::mpsc;
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -120,13 +121,78 @@ pub fn from_env() -> Box<dyn CommandSandbox> {
     }
 }
 
-/// Roda o processo e mata o filho direto se passar do prazo.
-/// stdout/stderr são drenados em threads para o filho não travar com o pipe cheio.
+/// Depois que o shell termina, quanto esperamos o resto da saída de processos que ele deixou
+/// rodando (ex.: `notepad`, `npm start &`), que herdam o pipe e o mantêm aberto.
+const PIPE_GRACE: Duration = Duration::from_secs(2);
+
+const BACKGROUND_WARNING: &str = "\n[aviso: o comando deixou um processo rodando em segundo plano; \
+     a saída pode estar incompleta]";
+
+/// Um pedaço lido de stdout (`false`) ou stderr (`true`).
+type Chunk = (bool, Vec<u8>);
+
+/// Lê `r` em pedaços e manda pelo canal até o pipe fechar.
+fn pump(mut r: impl Read + Send + 'static, is_err: bool, tx: mpsc::Sender<Chunk>) {
+    thread::spawn(move || {
+        let mut buf = [0u8; 8192];
+        loop {
+            match r.read(&mut buf) {
+                Ok(0) | Err(_) => break,
+                Ok(n) => {
+                    if tx.send((is_err, buf[..n].to_vec())).is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    });
+}
+
+fn push_chunk((is_err, bytes): Chunk, out: &mut Vec<u8>, err: &mut Vec<u8>) {
+    if is_err {
+        err.extend_from_slice(&bytes);
+    } else {
+        out.extend_from_slice(&bytes);
+    }
+}
+
+/// Mata o processo e os filhos dele (o `child.kill()` sozinho deixaria netos vivos).
+fn kill_tree(child: &mut Child) {
+    #[cfg(windows)]
+    {
+        let _ = Command::new("taskkill")
+            .args(["/T", "/F", "/PID", &child.id().to_string()])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+    #[cfg(unix)]
+    {
+        // O filho foi criado como líder do próprio grupo (`process_group(0)`).
+        let _ = Command::new("kill")
+            .args(["-KILL", "--", &format!("-{}", child.id())])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+    }
+    let _ = child.kill();
+}
+
+/// Roda o processo com prazo real.
+///
+/// stdout/stderr são lidos em threads (para o filho não travar com o pipe cheio) e chegam por
+/// canal, então o prazo vale também para a leitura: um neto que segura o pipe aberto não
+/// trava mais a ferramenta (antes o `join()` das threads esperava para sempre).
 fn spawn_with_timeout(
     mut cmd: Command,
     timeout: Duration,
     on_timeout: impl FnOnce(),
 ) -> Result<CommandOutput, String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
     let mut child = cmd
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -134,38 +200,73 @@ fn spawn_with_timeout(
         .spawn()
         .map_err(|e| format!("não consegui iniciar o comando: {e}"))?;
 
-    let drain = |mut r: Box<dyn Read + Send>| {
-        thread::spawn(move || {
-            let mut buf = Vec::new();
-            let _ = r.read_to_end(&mut buf);
-            String::from_utf8_lossy(&buf).into_owned()
-        })
-    };
-    let out = drain(Box::new(child.stdout.take().expect("stdout piped")));
-    let err = drain(Box::new(child.stderr.take().expect("stderr piped")));
+    let (tx, rx) = mpsc::channel::<Chunk>();
+    pump(child.stdout.take().expect("stdout piped"), false, tx.clone());
+    pump(child.stderr.take().expect("stderr piped"), true, tx);
 
+    let mut out = Vec::new();
+    let mut err = Vec::new();
+    let mut pipes_open = true;
     let deadline = Instant::now() + timeout;
+
     let status = loop {
         match child.try_wait() {
             Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() >= deadline => {
-                on_timeout();
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(format!(
-                    "o comando passou do limite de {}s e foi interrompido",
-                    timeout.as_secs()
-                ));
+            Ok(None) => {}
+            Err(e) => {
+                kill_tree(&mut child);
+                return Err(format!("erro esperando o comando: {e}"));
             }
-            Ok(None) => thread::sleep(Duration::from_millis(100)),
-            Err(e) => return Err(format!("erro esperando o comando: {e}")),
+        }
+        let now = Instant::now();
+        if now >= deadline {
+            on_timeout();
+            kill_tree(&mut child);
+            let _ = child.wait();
+            return Err(format!(
+                "o comando passou do limite de {}s e foi interrompido",
+                timeout.as_secs()
+            ));
+        }
+        let wait = (deadline - now).min(Duration::from_millis(100));
+        if pipes_open {
+            match rx.recv_timeout(wait) {
+                Ok(chunk) => push_chunk(chunk, &mut out, &mut err),
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+                Err(mpsc::RecvTimeoutError::Disconnected) => pipes_open = false,
+            }
+        } else {
+            thread::sleep(wait);
         }
     };
 
+    // O shell terminou: drena o resto, mas sem esperar para sempre por um neto que segura o pipe.
+    let grace_end = Instant::now() + PIPE_GRACE;
+    let mut lingering = false;
+    while pipes_open {
+        let now = Instant::now();
+        if now >= grace_end {
+            lingering = true;
+            break;
+        }
+        match rx.recv_timeout(grace_end - now) {
+            Ok(chunk) => push_chunk(chunk, &mut out, &mut err),
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                lingering = true;
+                break;
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => pipes_open = false,
+        }
+    }
+
+    let mut stderr = String::from_utf8_lossy(&err).into_owned();
+    if lingering {
+        stderr.push_str(BACKGROUND_WARNING);
+    }
     Ok(CommandOutput {
         exit_code: status.code().unwrap_or(-1),
-        stdout: out.join().unwrap_or_default(),
-        stderr: err.join().unwrap_or_default(),
+        stdout: String::from_utf8_lossy(&out).into_owned(),
+        stderr,
     })
 }
 
@@ -194,6 +295,33 @@ mod tests {
             .unwrap_err();
         assert!(err.contains("limite"), "{err}");
         assert!(started.elapsed() < Duration::from_secs(8));
+    }
+
+    /// Antes, um processo em segundo plano segurando o stdout travava a ferramenta para sempre.
+    #[cfg(unix)]
+    #[test]
+    fn host_shell_does_not_hang_on_background_process() {
+        let started = Instant::now();
+        let out = HostShell
+            .run("sleep 30 & echo pronto", &std::env::temp_dir(), Duration::from_secs(60))
+            .unwrap();
+        assert!(started.elapsed() < Duration::from_secs(10), "travou esperando o pipe");
+        assert!(out.stdout.contains("pronto"));
+        assert!(out.stderr.contains("segundo plano"), "{}", out.stderr);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn host_shell_timeout_kills_grandchildren() {
+        let marker = std::env::temp_dir().join(format!("a11y-neto-{}", std::process::id()));
+        let _ = std::fs::remove_file(&marker);
+        let cmd = format!("(sleep 3; touch '{}') & sleep 10", marker.display());
+        let err = HostShell
+            .run(&cmd, &std::env::temp_dir(), Duration::from_secs(1))
+            .unwrap_err();
+        assert!(err.contains("limite"), "{err}");
+        thread::sleep(Duration::from_secs(4));
+        assert!(!marker.exists(), "o neto sobreviveu ao timeout");
     }
 
     /// Precisa do Docker Desktop aberto: `cargo test -- --ignored docker_isolates`.
