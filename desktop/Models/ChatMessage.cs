@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Automation;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace A11yAgent.Desktop.Models;
@@ -11,7 +12,8 @@ public enum StepState { Pending, Running, Ok, Failed }
 public partial class ChatStep : ObservableObject
 {
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Icon), nameof(AccessibleName), nameof(IsCurrent))]
+    [NotifyPropertyChangedFor(nameof(Icon), nameof(AccessibleName), nameof(IsCurrent), nameof(LiveSetting),
+        nameof(IsDone), nameof(IsFailed), nameof(IsPending))]
     private StepState _state = StepState.Running;
 
     [ObservableProperty]
@@ -19,6 +21,10 @@ public partial class ChatStep : ObservableObject
     private string _text = "";
 
     public bool IsCurrent => State == StepState.Running;
+    // Usados só para a cor do ícone; o estado também está no texto e no nome acessível.
+    public bool IsDone => State == StepState.Ok;
+    public bool IsFailed => State == StepState.Failed;
+    public bool IsPending => State == StepState.Pending;
 
     public string Icon => State switch
     {
@@ -35,6 +41,10 @@ public partial class ChatStep : ObservableObject
         StepState.Failed => $"Falhou: {Text}",
         _ => $"Em andamento: {Text}"
     };
+
+    /// Falha interrompe o leitor de tela (Assertive); o resto espera a fala atual (Polite).
+    public AutomationLiveSetting LiveSetting =>
+        State == StepState.Failed ? AutomationLiveSetting.Assertive : AutomationLiveSetting.Polite;
 }
 
 /// Uma resposta possível a uma pergunta do agente (vira um botão).
@@ -55,6 +65,8 @@ public partial class ChatMessage : ObservableObject
     public ChatRole Role { get; }
     public bool IsUser => Role == ChatRole.User;
     public bool IsError => Role == ChatRole.Error;
+    public AutomationLiveSetting TitleLiveSetting =>
+        IsError ? AutomationLiveSetting.Assertive : AutomationLiveSetting.Polite;
 
     /// Pedido que gerou o plano/pergunta (usado ao aprovar ou ao responder).
     public string PendingTask { get; set; } = "";

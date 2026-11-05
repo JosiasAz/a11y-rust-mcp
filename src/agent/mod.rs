@@ -2,6 +2,7 @@ pub mod checkpoint;
 pub mod fs_tools;
 pub mod r#loop;
 pub mod progress;
+pub mod sandbox;
 pub mod state;
 pub mod tools;
 pub mod workspace;

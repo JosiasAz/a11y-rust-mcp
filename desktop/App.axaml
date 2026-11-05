@@ -2,6 +2,45 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A11yAgent.Desktop.App"
              RequestedThemeVariant="Light">
+  <!--
+    Paleta Uirapuru · Encontro das Águas (Manaus): barra lateral Rio Negro, área de trabalho Solimões,
+    ferrugem do uirapuru nas ações e dourado nos detalhes da barra.
+    (As chaves Mata/Nevoa/Folha são os papéis: barra lateral / fundo / superfície.)
+    Contrastes medidos (WCAG 2.2):
+      Texto      #2B1D14 sobre Solimões #EFE6D8 = 13,2:1 · sobre superfície #FFFBF5 = 15,8:1
+      Texto 2    #4E3B2E sobre Solimões = 8,5:1 · Texto 3 #6B5444 sobre Solimões = 5,7:1
+      Ação       branco sobre #8A3B12 = 7,7:1
+      Rio Negro  #21170F com texto #F3E9DC = 14,7:1 · #CDBBA6 = 9,4:1 · dourado #E9B872 = 9,7:1
+      Concluído  #1F6B4F sobre Solimões = 5,2:1 · Açaí #8E1B3A sobre Solimões = 7,2:1
+      Foco       #135E7A sobre Solimões = 5,8:1 (área clara) · #F5C9A6 sobre Rio Negro = 11,6:1 (barra)
+  -->
+  <Application.Resources>
+    <SolidColorBrush x:Key="Mata" Color="#21170F"/>
+    <SolidColorBrush x:Key="MataSel" Color="#33251A"/>
+    <SolidColorBrush x:Key="MataTexto" Color="#F3E9DC"/>
+    <SolidColorBrush x:Key="MataTexto2" Color="#CDBBA6"/>
+    <SolidColorBrush x:Key="Garganta" Color="#E9B872"/>
+    <SolidColorBrush x:Key="GargantaHover" Color="#F2CC8F"/>
+    <SolidColorBrush x:Key="Nevoa" Color="#EFE6D8"/>
+    <SolidColorBrush x:Key="Folha" Color="#FFFBF5"/>
+    <SolidColorBrush x:Key="Linha" Color="#DCCDB8"/>
+    <SolidColorBrush x:Key="Selecao" Color="#F6E2D2"/>
+    <SolidColorBrush x:Key="Texto" Color="#2B1D14"/>
+    <SolidColorBrush x:Key="Texto2" Color="#4E3B2E"/>
+    <SolidColorBrush x:Key="Texto3" Color="#6B5444"/>
+    <SolidColorBrush x:Key="Acao" Color="#8A3B12"/>
+    <SolidColorBrush x:Key="AcaoHover" Color="#6E2E0D"/>
+    <SolidColorBrush x:Key="FolhaNova" Color="#1F6B4F"/>
+    <SolidColorBrush x:Key="Acai" Color="#8E1B3A"/>
+    <SolidColorBrush x:Key="AcaiSuave" Color="#F6E3EA"/>
+    <SolidColorBrush x:Key="AcaiBorda" Color="#DDB0C0"/>
+    <SolidColorBrush x:Key="Aviso" Color="#7A5200"/>
+    <SolidColorBrush x:Key="AvisoSuave" Color="#FBF0D2"/>
+    <SolidColorBrush x:Key="AvisoBorda" Color="#E2C27A"/>
+    <SolidColorBrush x:Key="FocoAnel" Color="#135E7A"/>
+    <SolidColorBrush x:Key="FocoAnelEscuro" Color="#F5C9A6"/>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme />
     <Style Selector="Button">
@@ -9,7 +48,32 @@
       <Setter Property="Cursor" Value="Hand"/>
     </Style>
     <Style Selector="TextBox">
-      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="CornerRadius" Value="10"/>
+    </Style>
+
+    <!--
+      Foco (WCAG 1.4.11 / 2.4.13): anel de 3 px com respiro claro de 2 px.
+      Nenhuma cor consegue 3:1 ao mesmo tempo contra o fundo claro e contra o botão laranja escuro,
+      então o respiro separa o anel do botão e o anel contrasta com o fundo.
+    -->
+    <Style Selector="Button, ToggleButton, ListBoxItem, Expander, TextBox, ComboBox, CheckBox, RadioButton">
+      <Setter Property="FocusAdorner">
+        <FocusAdornerTemplate>
+          <Border BorderBrush="{StaticResource FocoAnel}" BorderThickness="3" CornerRadius="14" Margin="-5">
+            <Border BorderBrush="{StaticResource Nevoa}" BorderThickness="2" CornerRadius="11"/>
+          </Border>
+        </FocusAdornerTemplate>
+      </Setter>
+    </Style>
+    <!-- Na barra lateral escura o anel fica claro e o respiro, escuro. -->
+    <Style Selector="Border.lateral Button, Border.lateral ListBoxItem, Border.lateral ComboBox">
+      <Setter Property="FocusAdorner">
+        <FocusAdornerTemplate>
+          <Border BorderBrush="{StaticResource FocoAnelEscuro}" BorderThickness="3" CornerRadius="14" Margin="-5">
+            <Border BorderBrush="{StaticResource Mata}" BorderThickness="2" CornerRadius="11"/>
+          </Border>
+        </FocusAdornerTemplate>
+      </Setter>
     </Style>
   </Application.Styles>
 </Application>

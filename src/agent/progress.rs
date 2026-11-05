@@ -1,6 +1,8 @@
 use serde::Serialize;
 use std::sync::Arc;
 
+use crate::i18n::{self, t};
+
 /// Evento de progresso enviado ao desktop (SSE).
 #[derive(Debug, Clone, Serialize)]
 pub struct ProgressEvent {
@@ -40,7 +42,7 @@ impl ProgressEvent {
     pub fn tool_end(tool: &str, result: &Result<String, String>) -> Self {
         let (kind, message) = match result {
             Ok(ok) => ("tool_done", friendly_tool_result(tool, ok)),
-            Err(err) => ("tool_failed", format!("Não consegui: {}", truncate(err, 120))),
+            Err(err) => ("tool_failed", t("tool.failed", &[("error", &truncate(err, 120))])),
         };
         Self {
             kind: kind.into(),
@@ -92,44 +94,21 @@ fn changes_files(tool: &str) -> bool {
 
 pub type ProgressSink = Arc<dyn Fn(ProgressEvent) + Send + Sync>;
 
+/// Frase amigável, no idioma do processo, sobre o que a ferramenta vai fazer.
 pub fn friendly_tool_message(tool: &str, args: &serde_json::Value) -> String {
-    match tool {
-        "mkdir" => format!(
-            "Criando pasta: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or("…")
-        ),
-        "write_file" => format!(
-            "Escrevendo arquivo: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or("…")
-        ),
-        "str_replace" => format!(
-            "Editando arquivo: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or("…")
-        ),
-        "read_file" => format!(
-            "Lendo arquivo: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or("…")
-        ),
-        "list_dir" => format!(
-            "Listando pasta: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or(".")
-        ),
-        "create_structure" => "Montando estrutura de pastas/arquivos…".into(),
-        "run_terminal" => format!(
-            "Rodando comando: {}",
-            truncate(args.get("command").and_then(|v| v.as_str()).unwrap_or("…"), 80)
-        ),
-        "simplificar_texto" => "Simplificando texto…".into(),
-        "verificar_compreensao" => "Verificando compreensão…".into(),
-        "criar_lembrete" => "Criando lembrete…".into(),
-        "glob_files" => "Buscando arquivos…".into(),
-        "grep_search" => "Buscando no código…".into(),
-        "delete_path" => format!(
-            "Removendo: {}",
-            args.get("path").and_then(|v| v.as_str()).unwrap_or("…")
-        ),
-        other => format!("Usando ferramenta: {other}"),
+    let arg = |k: &str, default: &str| {
+        args.get(k)
+            .and_then(|v| v.as_str())
+            .unwrap_or(default)
+            .to_string()
+    };
+    let key = format!("tool.{tool}");
+    if !i18n::has(&key) {
+        return t("tool.other", &[("tool", tool)]);
     }
+    let path = arg("path", if tool == "list_dir" { "." } else { "…" });
+    let command = truncate(&arg("command", "…"), 80);
+    t(&key, &[("path", &path), ("command", &command)])
 }
 
 /// Resumo curto do resultado da ferramenta (evita despejar arquivo inteiro no chat).
@@ -138,15 +117,14 @@ pub fn friendly_tool_result(tool: &str, result: &str) -> String {
     let short = truncate(one_line, 100);
     match tool {
         "write_file" | "mkdir" | "create_structure" | "str_replace" | "delete_path" => {
-            format!("Feito: {short}")
+            t("result.changed", &[("summary", &short)])
         }
-        "read_file" => format!("Leu o arquivo ({})", format_bytes(result.len())),
+        "read_file" => t("result.read_file", &[("size", &format_bytes(result.len()))]),
         "list_dir" | "glob_files" | "grep_search" => {
-            let lines = result.lines().count();
-            format!("Encontrou {lines} item(ns)")
+            t("result.found", &[("count", &result.lines().count().to_string())])
         }
-        "run_terminal" => format!("Comando terminou: {short}"),
-        _ => format!("OK: {short}"),
+        "run_terminal" => t("result.run_terminal", &[("summary", &short)]),
+        _ => t("result.other", &[("summary", &short)]),
     }
 }
 
@@ -160,9 +138,9 @@ pub fn truncate(s: &str, max: usize) -> String {
 
 fn format_bytes(n: usize) -> String {
     if n < 1024 {
-        format!("{n} caracteres")
+        t("size.chars", &[("n", &n.to_string())])
     } else {
-        format!("{:.1} KB", n as f64 / 1024.0)
+        t("size.kb", &[("n", &format!("{:.1}", n as f64 / 1024.0))])
     }
 }
 

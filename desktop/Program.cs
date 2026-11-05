@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Media;
 using System;
 
 namespace A11yAgent.Desktop;
@@ -19,6 +20,7 @@ sealed class Program
 #if DEBUG
             .WithDeveloperTools()
 #endif
-            .WithInterFont()
+            // Atkinson Hyperlegible (Braille Institute, licença OFL): letras parecidas ficam distintas para baixa visão.
+            .With(new FontManagerOptions { DefaultFamilyName = "avares://Uirapuru/Assets/Fonts#Atkinson Hyperlegible" })
             .LogToTrace();
 }

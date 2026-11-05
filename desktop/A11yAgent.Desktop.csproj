@@ -5,9 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AssemblyName>A11yAgent</AssemblyName>
-    <Product>A11y Agent</Product>
-    <AssemblyTitle>A11y Agent</AssemblyTitle>
+    <AssemblyName>Uirapuru</AssemblyName>
+    <Product>Uirapuru</Product>
+    <AssemblyTitle>Uirapuru</AssemblyTitle>
+    <Description>Assistente acessível que cria e edita arquivos no seu computador</Description>
+    <Company>Josias Azevedo da Silva</Company>
+    <Copyright>© 2026 Josias Azevedo da Silva</Copyright>
+    <!-- Versão única do produto: o script de empacotamento lê daqui para o instalador. -->
+    <Version>0.1.0</Version>
+    <ApplicationIcon>Assets\uirapuru.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +25,6 @@
     <PackageReference Include="Avalonia" Version="12.1.5" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.5" />
     <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>

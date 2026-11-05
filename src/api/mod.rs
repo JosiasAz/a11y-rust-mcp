@@ -1,3 +1,5 @@
+pub mod auth;
+
 use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::Duration;
@@ -14,8 +16,9 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_stream::StreamExt;
-use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
+
+use auth::{ensure_loopback, require_bearer, ApiToken};
 
 use crate::agent::progress::{ProgressEvent, ProgressSink};
 use crate::agent::r#loop::{plan_and_solve, plan_desktop, run_desktop_agent, AgentRunOptions};
@@ -112,15 +115,15 @@ pub struct WriteFileRequest {
     pub content: String,
 }
 
-/// API HTTP para o desktop Avalonia (CORS liberado em localhost).
+/// API HTTP para o desktop Avalonia.
+///
+/// Só escuta em loopback e exige `Authorization: Bearer <token efêmero>` em todas as rotas.
+/// Não há CORS: o cliente é o app desktop, não um navegador, então nenhuma origem web é liberada.
 pub async fn run_desktop_api(bind: &str) -> Result<()> {
+    ensure_loopback(bind)?;
     let llm = Arc::new(shared_openai_compatible_from_env()?);
     let state = AppState { llm };
-
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    let token = ApiToken::generate()?;
 
     let app = Router::new()
         .route("/api/health", get(health))
@@ -130,12 +133,14 @@ pub async fn run_desktop_api(bind: &str) -> Result<()> {
         .route("/api/models", get(list_models))
         .route("/api/workspace/tree", get(workspace_tree))
         .route("/api/workspace/file", get(read_file).put(write_file))
-        .layer(cors)
+        .route_layer(axum::middleware::from_fn_with_state(token.clone(), require_bearer))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(bind)
         .await
         .with_context(|| format!("bind falhou em {bind}"))?;
+    // Só anuncia depois do bind, para o desktop não tentar usar uma porta que falhou.
+    token.announce()?;
     info!(%bind, "API desktop pronta — abra o app e use normalmente");
     axum::serve(listener, app)
         .await

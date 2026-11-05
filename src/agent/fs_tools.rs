@@ -1,7 +1,6 @@
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use std::process::Command;
 use std::time::Duration;
 
 use regex::Regex;
@@ -360,30 +359,19 @@ fn run_terminal(ws: &Workspace, args: &RunTerminalArgs) -> Result<String, String
         return Err(format!("comando bloqueado por política de segurança: {cmd}"));
     }
 
-    // shortcut: timeout cooperativo via thread; upgrade para tokio::process se precisar cancelar fino.
-    let _ = Duration::from_secs(args.timeout_secs.clamp(1, 300));
-
-    #[cfg(windows)]
-    let output = Command::new("powershell")
-        .args(["-NoProfile", "-NonInteractive", "-Command", cmd])
-        .current_dir(ws.root())
-        .output()
-        .map_err(|e| format!("spawn: {e}"))?;
-
-    #[cfg(not(windows))]
-    let output = Command::new("sh")
-        .args(["-lc", cmd])
-        .current_dir(ws.root())
-        .output()
-        .map_err(|e| format!("spawn: {e}"))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
+    let sandbox = super::sandbox::from_env();
+    let timeout = Duration::from_secs(args.timeout_secs.clamp(1, 300));
+    let output = sandbox.run(cmd, ws.root(), timeout)?;
     Ok(format!(
-        "exit={}\n--- stdout ---\n{}\n--- stderr ---\n{}",
-        output.status.code().unwrap_or(-1),
-        truncate(&stdout, 8000),
-        truncate(&stderr, 4000)
+        "exit={} (sandbox={})
+--- stdout ---
+{}
+--- stderr ---
+{}",
+        output.exit_code,
+        sandbox.name(),
+        truncate(&output.stdout, 8000),
+        truncate(&output.stderr, 4000)
     ))
 }
 

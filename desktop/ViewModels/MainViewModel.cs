@@ -25,6 +25,8 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly AgentHost _host;
     private readonly AgentApiClient _api = new();
+    private readonly OllamaService _ollama = new();
+    private CancellationTokenSource? _pullCts;
     private Window? _window;
     private CancellationTokenSource? _treeDebounce;
     private CancellationTokenSource? _runCts;
@@ -67,6 +69,24 @@ public partial class MainViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasModels))]
     private string? _selectedModel;
 
+    // ───── Ollama: aberto? modelo instalado? download com progresso ─────
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsOllamaDown), nameof(IsModelMissing))]
+    private OllamaState _ollamaState = OllamaState.NotApplicable;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSend))]
+    private bool _isPullingModel;
+
+    [ObservableProperty] private double _pullPercent;
+    /// Texto anunciado pelo leitor de tela; só muda a cada 5% para não inundar o usuário.
+    [ObservableProperty] private string _pullText = "";
+
+    public bool IsOllamaDown => OllamaState == OllamaState.NotRunning;
+    public bool IsModelMissing => OllamaState == OllamaState.ModelMissing;
+    public string ModelToDownload => OllamaService.ConfiguredModel;
+
     public ObservableCollection<string> FileEntries { get; } = [];
     public ObservableCollection<ChatMessage> Messages { get; } = [];
     public ObservableCollection<string> Models { get; } = [];
@@ -95,7 +115,7 @@ public partial class MainViewModel : ViewModelBase
     public bool HasPreview => !string.IsNullOrWhiteSpace(SelectedFile);
     public bool HasModels => Models.Count > 0;
     public bool IsOffline => !AgentOnline && !IsStarting;
-    public bool CanSend => AgentOnline && !IsBusy && !IsStarting;
+    public bool CanSend => AgentOnline && !IsBusy && !IsStarting && !IsPullingModel;
 
     public string BadgeText =>
         IsStarting ? "Ligando…" :
@@ -129,9 +149,20 @@ public partial class MainViewModel : ViewModelBase
         // Só mostra o progresso do boot enquanto ele dura (Progress<T> entrega atrasado).
         var progress = new Progress<string>(msg => Dispatcher.UIThread.Post(() => { if (IsStarting) StatusText = msg; }));
 
+        // Sem o Ollama aberto o agente não tem com quem conversar: orienta antes de ligar.
+        OllamaState = await _ollama.CheckAsync(OllamaService.ConfiguredModel);
+        if (IsOllamaDown)
+        {
+            AgentOnline = false;
+            IsStarting = false;
+            StatusText = "O programa Ollama não está aberto. Abra o Ollama e clique em \"Tentar ligar de novo\".";
+            return;
+        }
+
         try
         {
             AgentOnline = await _host.EnsureRunningAsync(progress);
+            if (_host.ApiToken is { } token) _api.UseToken(token);
         }
         catch (Exception ex)
         {
@@ -145,7 +176,9 @@ public partial class MainViewModel : ViewModelBase
 
         if (AgentOnline)
         {
-            StatusText = HasWorkspace ? "Pronto. Escreva seu pedido." : "Pronto. Comece escolhendo uma pasta.";
+            StatusText = IsModelMissing
+                ? $"Falta baixar o modelo de IA {ModelToDownload}. Use o botão \"Baixar modelo agora\"."
+                : HasWorkspace ? "Pronto. Escreva seu pedido." : "Pronto. Comece escolhendo uma pasta.";
             await LoadModelsAsync();
         }
         else
@@ -154,8 +187,7 @@ public partial class MainViewModel : ViewModelBase
             AddError("Não consegui ligar o assistente",
                 "Confira estes passos e depois clique em \"Tentar ligar de novo\", no topo:\n" +
                 "1. Abra o programa Ollama (ele roda o modelo de IA no seu computador).\n" +
-                "2. Se for a primeira vez, baixe um modelo: no terminal, digite  ollama pull qwen2.5:7b\n" +
-                "3. Se ainda não funcionar, rode  iniciar.bat rebuild  uma vez.",
+                "2. Se ainda não funcionar, reinstale o Uirapuru pelo instalador.",
                 StatusText);
         }
     }
@@ -321,7 +353,65 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Cancel() => _runCts?.Cancel();
+    private void ClosePreview() => SelectedFile = "";
+
+    [RelayCommand]
+    private void Cancel()
+    {
+        _runCts?.Cancel();
+        _pullCts?.Cancel();
+    }
+
+    /// Baixa o modelo configurado pelo Ollama, só depois do clique (são vários GB).
+    [RelayCommand]
+    private async Task PullModelAsync()
+    {
+        if (IsPullingModel) return;
+        var model = ModelToDownload;
+        IsPullingModel = true;
+        PullPercent = 0;
+        PullText = $"Baixando o modelo {model}: 0%";
+        StatusText = "Baixando o modelo de IA. Isso pode levar alguns minutos. Esc cancela.";
+        _pullCts = new CancellationTokenSource();
+        var announced = 0;
+
+        // Progress<T> devolve na thread da tela, porque foi criado nela.
+        var progress = new Progress<double>(p =>
+        {
+            PullPercent = p;
+            var step = (int)p / 5 * 5;
+            if (step > announced)
+            {
+                announced = step;
+                PullText = $"Baixando o modelo {model}: {step}%";
+            }
+        });
+
+        try
+        {
+            await _ollama.PullAsync(model, progress, _pullCts.Token);
+            OllamaState = OllamaState.Ready;
+            PullText = "";
+            StatusText = $"Modelo {model} instalado. Pronto para usar.";
+            await LoadModelsAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            PullText = "Download cancelado. O que já foi baixado fica guardado e continua da próxima vez.";
+            StatusText = "Download cancelado.";
+        }
+        catch (Exception ex)
+        {
+            PullText = ex.Message;
+            StatusText = "Não consegui baixar o modelo. Veja o motivo no aviso.";
+        }
+        finally
+        {
+            IsPullingModel = false;
+            _pullCts.Dispose();
+            _pullCts = null;
+        }
+    }
 
     [RelayCommand]
     private void NewConversation()
@@ -570,12 +660,12 @@ public partial class MainViewModel : ViewModelBase
             || r.Contains("11434") || r.Contains("conexão"))
             return "Não consegui falar com o modelo de IA (Ollama). Abra o programa Ollama e tente de novo.";
         if (r.Contains("não encontrado no backend") || r.Contains("ollama list"))
-            return "Esse modelo não está instalado. No terminal, digite  ollama pull qwen2.5:7b  e tente de novo.";
+            return "Esse modelo não está instalado. Escolha outro no topo, ou feche e abra o app para baixá-lo.";
         if (r.Contains("limite de repetições"))
             return "Fiquei repetindo a mesma ação sem avançar. Tente pedir de forma mais específica, por exemplo dizendo o nome do arquivo.";
         if (r.Contains("limite de passos"))
             return "O pedido era grande demais para uma vez só. Tente dividir em partes menores.";
-        if (r.Contains("fora do workspace"))
+        if (r.Contains("fora do workspace") || r.Contains("fora da pasta escolhida"))
             return "Esse pedido tentou mexer em algo fora da pasta escolhida, e eu só posso trabalhar dentro dela.";
         if (r.Contains("interpretar o plano") || r.Contains("plano vazio") || r.Contains("não devolveu um plano"))
             return "Não consegui montar um plano para esse pedido. Tente escrever de outro jeito, dizendo o que você quer no final.";

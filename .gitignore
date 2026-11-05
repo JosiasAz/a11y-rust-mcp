@@ -19,3 +19,6 @@ app/
 *.user
 mcp_out.txt
 mcp_err.txt
+
+# instalador gerado por build\empacotar.ps1
+dist/

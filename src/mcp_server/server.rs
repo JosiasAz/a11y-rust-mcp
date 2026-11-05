@@ -11,6 +11,7 @@ use rmcp::{
 use tracing::info;
 
 use super::handler::A11yMcpServer;
+use crate::api::auth::{require_bearer, ApiToken};
 use crate::agent::workspace::Workspace;
 use crate::llm::shared_openai_compatible_from_env;
 
@@ -54,10 +55,15 @@ pub async fn run_mcp_http(bind: &str) -> Result<()> {
             .with_cancellation_token(ct.child_token()),
     );
 
-    let router = axum::Router::new().nest_service("/mcp", service);
+    let token = ApiToken::generate()?;
+    let router = axum::Router::new()
+        .nest_service("/mcp", service)
+        .layer(axum::middleware::from_fn_with_state(token.clone(), require_bearer));
     let listener = tokio::net::TcpListener::bind(bind)
         .await
         .with_context(|| format!("falha ao bind em {bind}"))?;
+    // O cliente MCP precisa configurar este valor como header `Authorization: Bearer <token>`.
+    token.announce()?;
 
     info!(%bind, path = "/mcp", "Streamable HTTP pronto");
 

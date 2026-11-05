@@ -23,6 +23,10 @@ public sealed class AgentApiClient
         };
     }
 
+    /// Envia o token efêmero da sessão em toda requisição (HTTP e SSE). Sem ele a API responde 401.
+    public void UseToken(string token) =>
+        _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
     /// Plano em etapas, ou uma pergunta com opções se o pedido for ambíguo.
     public async Task<PlanDto> PlanAsync(string task, string? model, CancellationToken ct = default)
     {

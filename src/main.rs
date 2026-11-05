@@ -1,5 +1,6 @@
 mod agent;
 mod api;
+mod i18n;
 mod llm;
 mod mcp_server;
 

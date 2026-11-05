@@ -67,7 +67,7 @@ Tudo fica no seu computador. Nada vai para a internet.
 
 ---
 
-![Tela inicial do A11y Agent. À esquerda, a lista de arquivos. No centro, a saudação "Olá! Como posso ajudar?", três passos numerados (escolher pasta, dizer o que quer, acompanhar e conferir) e quatro ideias de pedido. À direita, a prévia do arquivo. Embaixo, a caixa de pedido e o botão Enviar pedido.](docs/tela-inicial.png)
+![Tela inicial do Uirapuru. À esquerda, uma barra lateral marrom-escura com o logo do pássaro uirapuru, o botão dourado "Nova conversa", o cartão "Nenhuma pasta ainda" com o botão "Escolher pasta" e, embaixo, o seletor de modelo de IA e o estado "Pronto". À direita, em fundo bege-claro, a saudação "Olá! Eu sou o Uirapuru.", quatro ideias de pedido e o aviso de que tudo roda no computador. Embaixo, a caixa de pedido com os botões "Escolher pasta" e "Enviar pedido", este em cor de ferrugem.](docs/tela-inicial.png)
 
 ---
 
@@ -94,21 +94,17 @@ Cada regra aponta para o lugar do código onde ela está implementada, para voc�
 
 ## Começar a usar
 
-Você precisa de duas coisas: o **[Ollama](https://ollama.com/download)** (o programa que roda a IA no seu computador) e o modelo, baixado uma vez:
-
-```bat
-ollama pull qwen2.5:7b
-```
+Você precisa do **[Ollama](https://ollama.com/download)**, o programa que roda a IA no seu computador. Se o modelo ainda não estiver instalado, o app mostra o botão **Baixar modelo agora** com uma barra de progresso, sem precisar abrir o terminal.
 
 Depois:
 
-1. Abra o Ollama e depois o **A11y Agent**.
+1. Instale o Uirapuru com o `Uirapuru-Setup-<versão>.exe`. Abra o Ollama e depois o **Uirapuru** pelo menu Iniciar.
 2. Clique em **Escolher pasta**.
 3. Escreva o pedido e aperte **Enter**.
 4. Em menos de um minuto aparece **Meu plano**, com as etapas. Se estiver bom, clique em **Começar**. Se o pedido for ambíguo, o assistente pergunta antes ("janela no computador ou página web?") e você responde com um clique.
 5. Acompanhe: cada etapa vai de ○ para … e depois para ✓, e o cartão mostra há quanto tempo o assistente está trabalhando.
 
-No topo, em **Modelo**, você escolhe qualquer modelo instalado no Ollama. Modelos menores respondem mais rápido. Para instalar outro, digite no terminal `ollama pull nome-do-modelo` e clique em ⟳.
+Na barra lateral, em **Modelo de IA**, você escolhe qualquer modelo instalado no Ollama. Modelos menores respondem mais rápido. Para instalar outro, digite no terminal `ollama pull nome-do-modelo` e clique em ⟳.
 
 Sem placa de vídeo, um pedido de três etapas leva uns 5 minutos com o `qwen2.5:7b`. **Cancelar** (ou `Esc`) para o trabalho na hora, e o Ollama deixa de usar a CPU. Ao fechar o app, o modelo também sai da memória.
 
@@ -121,15 +117,31 @@ Sem placa de vídeo, um pedido de três etapas leva uns 5 minutos com o `qwen2.5
 | Setas           | Passam de uma mensagem para outra na conversa |
 
 <details>
-<summary><strong>Primeira instalação (para quem vai configurar o computador)</strong></summary>
+<summary><strong>Gerar o instalador (para quem desenvolve)</strong></summary>
 
-Com [Rust](https://rustup.rs/) e o [.NET SDK 10+](https://dotnet.microsoft.com/download) instalados, rode uma vez:
+Precisa de [Rust](https://rustup.rs/), do [.NET SDK 10+](https://dotnet.microsoft.com/download), do Inno Setup 6 (`winget install JRSoftware.InnoSetup`) e do `signtool` do Windows SDK.
 
-```bat
-iniciar.bat
+```powershell
+powershell -ExecutionPolicy Bypass -File build\empacotar.ps1
 ```
 
-O script compila o agente, publica a interface em `app\`, cria o atalho **A11y Agent** na Área de Trabalho e abre o app. Depois disso, o script não é mais necessário. Para gerar de novo, use `iniciar.bat rebuild`.
+O script compila o agente, publica o app em `dist\app`, assina `Uirapuru.exe`, `Uirapuru.dll` e `agent\rust-a11y-agent.exe`, e gera `dist\Uirapuru-Setup-<versão>.exe` (também assinado, junto com o desinstalador). A versão vem do `<Version>` em `desktop\A11yAgent.Desktop.csproj`.
+
+O instalador:
+- instala só para o usuário, sem pedir administrador (dá para escolher "todos os usuários");
+- cria o atalho no menu Iniciar e, se você marcar, na Área de Trabalho;
+- se o Ollama não estiver instalado, oferece abrir a página de download dele no final;
+- aparece em "Programas instalados" para desinstalar.
+
+**Certificado de assinatura**, nesta ordem:
+
+| Variável de ambiente | Quando usar |
+| --- | --- |
+| `UIRAPURU_PFX` + `UIRAPURU_PFX_SENHA` | certificado comprado em arquivo `.pfx` |
+| `UIRAPURU_CERT_THUMBPRINT` | certificado já instalado no Windows (inclui token USB) |
+| nenhuma | usa o certificado de teste "Uirapuru - assinatura de teste" desta máquina; crie com `-CriarCertificadoDeTeste` |
+
+Com o certificado de teste, o Windows mostra o editor, mas ainda avisa "Editor desconhecido" em outras máquinas. Para isso sumir, é preciso um certificado de assinatura de código de uma autoridade certificadora. Use `-SemAssinatura` para gerar sem assinar.
 
 </details>
 
@@ -139,9 +151,10 @@ O script compila o agente, publica a interface em `app\`, cria o atalho **A11y A
 | O que aparece                       | O que fazer                                                        |
 | ----------------------------------- | ------------------------------------------------------------------ |
 | Selo **Desligado**                  | Abra o Ollama e clique em **Tentar ligar de novo**                  |
-| "O modelo de IA não está instalado" | `ollama pull qwen2.5:7b`                                            |
+| "Falta baixar o modelo de IA"       | Clique em **Baixar modelo agora** (Esc cancela)                     |
 | "Fiquei repetindo a mesma ação"     | Peça de novo dizendo o nome do arquivo                              |
 | `Acesso negado` ao recompilar       | Feche o app e o processo `rust-a11y-agent.exe`                      |
+| "Outra cópia do agente já está aberta" | Feche o processo `rust-a11y-agent.exe` que sobrou e tente de novo |
 
 </details>
 
@@ -151,9 +164,8 @@ O script compila o agente, publica a interface em `app\`, cria o atalho **A11y A
 
 Este projeto quer servir de referência em acessibilidade, então os limites ficam à vista:
 
-- **A API local não tem proteção.** Ela responde a qualquer página aberta no navegador (CORS aberto, sem token). Feche o app quando não estiver usando.
-- **No app, o assistente não roda comandos no terminal.** Ele cria e edita arquivos, e a explicação final diz como abrir o resultado. Nos modos `chat` e MCP o `run_terminal` continua disponível e **não tem isolamento real**: o comando começa na pasta, mas pode alcançar o resto do sistema.
-- **O contorno de foco tem contraste 2:1**, abaixo do mínimo de 3:1 (WCAG 1.4.11).
+- **No app, o assistente não roda comandos no terminal.** Ele cria e edita arquivos, e a explicação final diz como abrir o resultado. Nos modos `chat` e MCP o `run_terminal` continua disponível. Por padrão ele roda no shell local (`A11Y_SANDBOX=host`), que **não isola nada** além da pasta inicial e do tempo-limite. Com `A11Y_SANDBOX=docker` o comando roda num container sem rede que só enxerga a pasta.
+- **O `mcp-http` usa HTTP sem TLS.** O token protege contra quem não o conhece, mas na rede local ele passa em texto aberto. Prefira `127.0.0.1`.
 - **Ainda não houve teste com NVDA, Narrador nem com pessoas usuárias.** Tudo acima é intenção de projeto, não resultado medido. A única exceção são os contrastes de texto (14,6:1, 6,3:1 e 6,1:1), que foram medidos.
 - **Modelos pequenos erram e usam jargão**, como o "diretório raiz" da conversa lá em cima.
 
@@ -215,6 +227,8 @@ desktop/
 | `mcp-server`                              | MCP via stdio                      |
 | `mcp-http --bind 127.0.0.1:8000`          | MCP via HTTP                       |
 
+`serve-api` e `mcp-http` geram um token novo a cada início e imprimem `A11Y_API_TOKEN=<token>` no stdout. Toda requisição precisa do header `Authorization: Bearer <token>`; sem ele a resposta é 401. O app desktop lê esse token sozinho. O `serve-api` só aceita endereços de loopback (`127.0.0.1` ou `::1`).
+
 **Configuração**
 
 | Variável         | Padrão                      |
@@ -225,6 +239,9 @@ desktop/
 | `LLM_API_KEY`    | `ollama`                    |
 | `A11Y_WORKSPACE` | pasta atual (modos MCP e `chat`) |
 | `A11Y_AGENT_EXE` | busca automática do binário |
+| `A11Y_SANDBOX`   | `host` (também `docker`)    |
+| `A11Y_SANDBOX_IMAGE` | `alpine:3`              |
+| `A11Y_LANG`      | idioma da interface (o app envia); senão `LC_ALL`/`LANG`; senão pt-BR. Aceita `en` |
 
 </details>
 
@@ -258,4 +275,4 @@ desktop/
 
 ## Licença
 
-[MIT](./LICENSE). Criado e mantido por **Josias** ([@JosiasAz](https://github.com/JosiasAz)).
+[MIT](./LICENSE). Criado e mantido por **Josias Azevedo da Silva** ([@JosiasAz](https://github.com/JosiasAz)).

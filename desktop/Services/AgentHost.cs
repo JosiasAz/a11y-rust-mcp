@@ -1,10 +1,15 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace A11yAgent.Desktop.Services;
 
 /// <summary>
 /// Sobe a API Rust em segundo plano (sem janela) e encerra ao fechar o app.
+/// A API exige um token efêmero que ela mesma gera e imprime no stdout ao subir;
+/// só quem iniciou o processo consegue lê-lo.
 /// </summary>
 public sealed class AgentHost : IDisposable
 {
@@ -13,22 +18,28 @@ public sealed class AgentHost : IDisposable
     private Process? _process;
     private bool _startedByUs;
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(2) };
+    private readonly TaskCompletionSource<string> _token = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private const string TokenPrefix = "A11Y_API_TOKEN=";
+
+    /// Token da sessão para o header Authorization. Nulo até o agente subir.
+    public string? ApiToken => _token.Task.IsCompletedSuccessfully ? _token.Task.Result : null;
 
     /// Modelo usado no último pedido; é descarregado da memória do Ollama ao fechar o app.
     public string? ActiveModel { get; set; }
 
     public async Task<bool> EnsureRunningAsync(IProgress<string>? progress = null, CancellationToken ct = default)
     {
-        if (await IsHealthyAsync(ct))
+        // Sem token não dá para usar uma instância antiga: ela é de outro processo (ou ficou órfã).
+        if (await ProbeAsync(ct) != ProbeResult.Down)
         {
-            progress?.Report("Agente já estava ligado.");
-            return true;
+            progress?.Report("Outra cópia do agente já está aberta. Feche-a (ou reinicie o computador) e tente de novo.");
+            return false;
         }
 
         var exe = FindAgentExe();
         if (exe is null)
         {
-            progress?.Report("Agente não encontrado. Rode iniciar.bat rebuild uma vez para gerar o app.");
+            progress?.Report("Uma parte do Uirapuru está faltando. Reinstale o Uirapuru pelo instalador.");
             return false;
         }
 
@@ -48,6 +59,8 @@ public sealed class AgentHost : IDisposable
             psi.Environment["LLM_PROVIDER"] = Environment.GetEnvironmentVariable("LLM_PROVIDER") ?? "ollama";
             psi.Environment["LLM_MODEL"] = Environment.GetEnvironmentVariable("LLM_MODEL") ?? "qwen2.5:7b";
             psi.Environment["RUST_LOG"] = Environment.GetEnvironmentVariable("RUST_LOG") ?? "warn";
+            // Mensagens de progresso no idioma da interface.
+            psi.Environment["A11Y_LANG"] = CultureInfo.CurrentUICulture.Name;
 
             _process = Process.Start(psi);
             if (_process is null)
@@ -57,7 +70,7 @@ public sealed class AgentHost : IDisposable
             }
 
             _startedByUs = true;
-            _ = DrainAsync(_process.StandardOutput);
+            _ = ReadTokenAsync(_process.StandardOutput);
             _ = DrainAsync(_process.StandardError);
         }
         catch (Exception ex)
@@ -86,17 +99,40 @@ public sealed class AgentHost : IDisposable
         return false;
     }
 
-    public async Task<bool> IsHealthyAsync(CancellationToken ct = default)
+    public async Task<bool> IsHealthyAsync(CancellationToken ct = default) =>
+        await ProbeAsync(ct) == ProbeResult.Ok;
+
+    private enum ProbeResult { Down, Ok, Unauthorized }
+
+    private async Task<ProbeResult> ProbeAsync(CancellationToken ct)
     {
         try
         {
-            using var resp = await _http.GetAsync($"{BaseUrl}/api/health", ct);
-            return resp.IsSuccessStatusCode;
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}/api/health");
+            if (ApiToken is { } token)
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            using var resp = await _http.SendAsync(req, ct);
+            if (resp.StatusCode == HttpStatusCode.Unauthorized) return ProbeResult.Unauthorized;
+            return resp.IsSuccessStatusCode ? ProbeResult.Ok : ProbeResult.Down;
         }
         catch
         {
-            return false;
+            return ProbeResult.Down;
         }
+    }
+
+    /// Procura a linha do token no stdout do agente e continua drenando o resto.
+    private async Task ReadTokenAsync(StreamReader reader)
+    {
+        try
+        {
+            while (await reader.ReadLineAsync() is { } line)
+            {
+                if (line.StartsWith(TokenPrefix, StringComparison.Ordinal))
+                    _token.TrySetResult(line[TokenPrefix.Length..].Trim());
+            }
+        }
+        catch { /* processo encerrou */ }
     }
 
     public void Dispose()
@@ -119,13 +155,10 @@ public sealed class AgentHost : IDisposable
     /// Não encerra o Ollama: ele é um serviço do usuário e pode estar servindo outros programas.
     private void UnloadOllamaModel()
     {
-        var provider = Environment.GetEnvironmentVariable("LLM_PROVIDER") ?? "ollama";
-        if (string.IsNullOrWhiteSpace(ActiveModel) || !provider.Equals("ollama", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(ActiveModel) || !OllamaService.IsOllamaProvider)
             return;
 
-        var baseUrl = (Environment.GetEnvironmentVariable("LLM_BASE_URL") ?? "http://127.0.0.1:11434/v1")
-            .TrimEnd('/');
-        if (baseUrl.EndsWith("/v1")) baseUrl = baseUrl[..^3];
+        var baseUrl = OllamaService.BaseUrl();
 
         try
         {
