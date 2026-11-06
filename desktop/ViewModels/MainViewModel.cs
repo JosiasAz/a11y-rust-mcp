@@ -31,6 +31,7 @@ public partial class MainViewModel : ViewModelBase
     private CancellationTokenSource? _treeDebounce;
     private CancellationTokenSource? _runCts;
     private ChatMessage? _pendingPlan;
+    private bool _modelsLoaded;
 
     // Relógio do cartão em andamento: mostra que o agente não travou.
     private readonly DispatcherTimer _clock = new() { Interval = TimeSpan.FromSeconds(1) };
@@ -64,10 +65,59 @@ public partial class MainViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CanSend), nameof(BadgeText), nameof(IsOffline))]
     private bool _isStarting = true;
 
-    /// Modelo escolhido no topo; vazio = padrão do agente.
+    /// Modelo em uso; vazio = padrão do provedor.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasModels))]
+    [NotifyPropertyChangedFor(nameof(HasModels), nameof(ModelSummary))]
     private string? _selectedModel;
+
+    // ───── Escolha da IA: provedor, chave e modelo (tela aberta pelo cartão da barra lateral) ─────
+
+    public IReadOnlyList<AiProvider> Providers => AiSettings.Providers;
+
+    /// Provedor que o agente está usando agora.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSwitching), nameof(PrivacyText), nameof(ShowConnect), nameof(ConnectText), nameof(ModelHint))]
+    private AiProvider _activeProvider = AiSettings.Current;
+
+    /// Provedor marcado no painel (só vira o ativo ao clicar em "Usar").
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSwitching), nameof(NeedsKey), nameof(KeyPlaceholder), nameof(PickedPrivacy),
+        nameof(ShowConnect), nameof(ConnectText), nameof(ShowModelPicker), nameof(ModelStepNumber))]
+    private AiProvider _pickedProvider = AiSettings.Current;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowConnect), nameof(ConnectText))]
+    private string _apiKeyInput = "";
+
+    [ObservableProperty] private string _providerMessage = "";
+    [ObservableProperty] private string _modelFilter = "";
+    [ObservableProperty] private bool _isConnecting;
+
+    /// Item marcado na lista filtrada. Separado de SelectedModel: filtrar a lista não pode desfazer a escolha.
+    [ObservableProperty] private string? _pickedModel;
+
+    public ObservableCollection<string> FilteredModels { get; } = [];
+
+    public bool IsSwitching => PickedProvider != ActiveProvider;
+    public bool NeedsKey => !PickedProvider.IsLocal;
+    public bool ShowConnect => IsSwitching || (NeedsKey && !string.IsNullOrWhiteSpace(ApiKeyInput));
+    public string ConnectText => IsSwitching ? $"Usar {PickedProvider.Name}" : "Salvar nova chave";
+    public bool ShowModelPicker => !IsSwitching && HasModels;
+    public string KeyPlaceholder => AiSettings.HasKey(PickedProvider.Id)
+        ? "Chave já salva. Cole outra só se quiser trocar."
+        : "Cole aqui a sua chave";
+    public string PickedPrivacy =>
+        $"O que você escrever será enviado para os servidores de {PickedProvider.Name}. Use só com textos que você pode compartilhar.";
+    public string PrivacyText => ActiveProvider.IsLocal
+        ? "🔒  Tudo roda no seu computador. Nada do que você escreve sai daqui."
+        : $"🌐  Você está usando {ActiveProvider.Name}. O que você escreve é enviado pela internet para esse serviço.";
+    public string ModelSummary => string.IsNullOrWhiteSpace(SelectedModel) ? "Modelo padrão" : SelectedModel;
+    public string ModelCountText => FilteredModels.Count switch
+    {
+        0 => "Nenhum modelo com esse nome.",
+        1 => "1 modelo",
+        var n => $"{n} modelos",
+    };
 
     // ───── Ollama: aberto? modelo instalado? download com progresso ─────
 
@@ -128,7 +178,12 @@ public partial class MainViewModel : ViewModelBase
     {
         _host = host;
         Messages.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasConversation));
-        Models.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasModels));
+        Models.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(HasModels));
+            OnPropertyChanged(nameof(ShowModelPicker));
+        };
+        FilteredModels.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ModelCountText));
         _clock.Tick += (_, _) =>
         {
             if (_clockTarget is null) return;
@@ -179,35 +234,148 @@ public partial class MainViewModel : ViewModelBase
             StatusText = IsModelMissing
                 ? $"Falta baixar o modelo de IA {ModelToDownload}. Use o botão \"Baixar modelo agora\"."
                 : HasWorkspace ? "Pronto. Escreva seu pedido." : "Pronto. Comece escolhendo uma pasta.";
-            await LoadModelsAsync();
+            _modelsLoaded = await LoadModelsAsync();
         }
         else
         {
             StatusText = "O assistente não ligou. Veja as instruções na conversa.";
             AddError("Não consegui ligar o assistente",
                 "Confira estes passos e depois clique em \"Tentar ligar de novo\", no topo:\n" +
-                "1. Abra o programa Ollama (ele roda o modelo de IA no seu computador).\n" +
+                (ActiveProvider.IsLocal
+                    ? "1. Abra o programa Ollama (ele roda o modelo de IA no seu computador).\n"
+                    : $"1. Confira a chave de {ActiveProvider.Name} em \"Modelo de IA\", embaixo na barra lateral.\n") +
                 "2. Se ainda não funcionar, reinstale o Uirapuru pelo instalador.",
                 StatusText);
         }
     }
 
-    private async Task LoadModelsAsync()
+    // shortcut: filtro pelo nome; um modelo de conversa com uma destas palavras no nome fica de fora. Trocar por metadados do provedor se isso acontecer.
+    private static readonly string[] NotChatModels =
+        ["embed", "rerank", "guard", "reward", "safety", "moderation", "whisper", "tts", "dall-e", "transcribe", "parse"];
+
+    /// Devolve false se o provedor não respondeu (na nuvem, quase sempre é chave errada).
+    private async Task<bool> LoadModelsAsync()
     {
+        var ok = true;
         try
         {
             var list = await _api.ModelsAsync();
-            var keep = SelectedModel;
+            var keep = SelectedModel ?? AiSettings.SavedModel;
             Models.Clear();
-            foreach (var m in list.Models.OrderBy(m => m)) Models.Add(m);
-            SelectedModel = keep is not null && Models.Contains(keep) ? keep
-                : Models.Contains(list.Current) ? list.Current
+            foreach (var m in list.Models.Where(m => !NotChatModels.Any(w => m.Contains(w, StringComparison.OrdinalIgnoreCase))).OrderBy(m => m))
+                Models.Add(m);
+            // O padrão do provedor entra na lista mesmo se a API não o listar.
+            var pick = keep is not null && Models.Contains(keep) ? keep
+                : !string.IsNullOrWhiteSpace(list.Current) ? list.Current
                 : Models.FirstOrDefault();
+            if (pick is not null && !Models.Contains(pick)) Models.Insert(0, pick);
+            SelectedModel = pick;
         }
         catch
         {
-            // Sem lista: o agente usa o modelo padrão dele.
+            ok = false; // sem lista: o agente usa o modelo padrão dele
         }
+        ApplyModelFilter();
+        return ok;
+    }
+
+    partial void OnSelectedModelChanged(string? value)
+    {
+        if (value is not null) AiSettings.SaveModel(value);
+    }
+
+    partial void OnPickedModelChanged(string? value)
+    {
+        if (value is not null && value != SelectedModel)
+        {
+            SelectedModel = value;
+            ProviderMessage = $"Pronto: os próximos pedidos usam {value}.";
+        }
+    }
+
+    partial void OnModelFilterChanged(string value) => ApplyModelFilter();
+
+    private void ApplyModelFilter()
+    {
+        var q = ModelFilter.Trim();
+        FilteredModels.Clear();
+        foreach (var m in Models.Where(m => m.Contains(q, StringComparison.OrdinalIgnoreCase)))
+            FilteredModels.Add(m);
+        PickedModel = SelectedModel is not null && FilteredModels.Contains(SelectedModel) ? SelectedModel : null;
+    }
+
+    /// A tela "Modelo de IA" ocupa o lugar do chat enquanto estiver aberta.
+    [ObservableProperty] private bool _isModelPanelOpen;
+
+    public string ModelStepNumber => NeedsKey ? "3" : "2";
+    public string ModelHint => ActiveProvider.IsLocal
+        ? "Modelos menores respondem mais rápido. Para baixar outro, use o programa Ollama."
+        : "Cada provedor tem vários modelos. Se não souber qual escolher, fique com o que já está marcado.";
+
+    [RelayCommand]
+    private void OpenModelPanel()
+    {
+        if (IsBusy) return;
+        // Abre mostrando o provedor em uso, sem resto de digitação anterior.
+        PickedProvider = ActiveProvider;
+        ApiKeyInput = "";
+        ModelFilter = "";
+        ProviderMessage = "";
+        IsModelPanelOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseModelPanel()
+    {
+        if (IsConnecting) return; // trocar no meio da conexão deixaria o agente pela metade
+        ApiKeyInput = "";
+        IsModelPanelOpen = false;
+    }
+
+    [RelayCommand]
+    private async Task ConnectProviderAsync()
+    {
+        if (IsBusy || IsConnecting) return;
+        var p = PickedProvider;
+        if (NeedsKey && !AiSettings.HasKey(p.Id) && string.IsNullOrWhiteSpace(ApiKeyInput))
+        {
+            ProviderMessage = $"Cole a chave de {p.Name} antes de continuar. Não tem uma? Use o botão \"Criar uma chave\".";
+            return;
+        }
+
+        IsConnecting = true;
+        ProviderMessage = $"Conectando a {p.Name}…";
+        try
+        {
+            AiSettings.SaveProvider(p.Id, ApiKeyInput);
+            ApiKeyInput = "";
+            if (p != ActiveProvider) SelectedModel = null; // modelo de outro provedor não existe neste
+            ActiveProvider = p;
+            Models.Clear();
+            OllamaState = OllamaState.NotApplicable;
+            _host.Stop();
+            await BootAsync();
+            ProviderMessage = !AgentOnline
+                ? (p.IsLocal ? "Não consegui ligar. Veja se o Ollama está aberto." : $"Não consegui conectar a {p.Name}. Confira a chave e tente de novo.")
+                : !p.IsLocal && !_modelsLoaded ? $"{p.Name} não aceitou a chave (ou está fora do ar). Confira a chave e tente de novo."
+                : HasModels ? $"Conectado a {p.Name}. Escolha o modelo abaixo." : $"Conectado a {p.Name}.";
+        }
+        catch (Exception ex)
+        {
+            ProviderMessage = $"Não consegui salvar a escolha: {ex.Message}";
+        }
+        finally
+        {
+            IsConnecting = false;
+            OnPropertyChanged(nameof(KeyPlaceholder));
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenKeyPageAsync()
+    {
+        if (_window is not null && PickedProvider.KeyUrl is { } url)
+            await _window.Launcher.LaunchUriAsync(new Uri(url));
     }
 
     [RelayCommand]
@@ -222,7 +390,7 @@ public partial class MainViewModel : ViewModelBase
     private async Task PickWorkspaceAsync()
     {
         // Trocar de pasta no meio do trabalho abriria o resultado na pasta errada.
-        if (_window is null || IsBusy) return;
+        if (_window is null || IsBusy || IsModelPanelOpen) return;
 
         try
         {
@@ -358,6 +526,12 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void Cancel()
     {
+        // Na tela "Modelo de IA", o Esc só volta para o chat.
+        if (IsModelPanelOpen)
+        {
+            CloseModelPanel();
+            return;
+        }
         _runCts?.Cancel();
         _pullCts?.Cancel();
     }
@@ -654,13 +828,17 @@ public partial class MainViewModel : ViewModelBase
     internal static string FriendlyError(string raw)
     {
         var r = raw.ToLowerInvariant();
-        if (r.Contains("does not support tools"))
-            return "Esse modelo não sabe usar ferramentas (criar e editar arquivos). Escolha outro modelo no topo, como o qwen2.5.";
+        if (r.Contains("does not support tools") || (r.Contains("tool") && r.Contains("not supported")))
+            return "Esse modelo não sabe usar ferramentas (criar e editar arquivos). Escolha outro em \"Modelo de IA\", na barra lateral.";
+        if (r.Contains("status 401") || r.Contains("status 403") || r.Contains("invalid api key") || r.Contains("unauthorized"))
+            return "A chave da API foi recusada. Confira se ela está certa e ativa em \"Modelo de IA\", na barra lateral.";
+        if (r.Contains("status 429") || r.Contains("rate limit") || r.Contains("quota"))
+            return "O serviço de IA recusou por excesso de uso ou falta de créditos. Espere um pouco ou confira o saldo da sua conta.";
         if (r.Contains("connection refused") || r.Contains("10061") || r.Contains("error sending request")
             || r.Contains("11434") || r.Contains("conexão"))
-            return "Não consegui falar com o modelo de IA (Ollama). Abra o programa Ollama e tente de novo.";
+            return "Não consegui falar com o modelo de IA. Se você usa o Ollama, abra o programa. Se usa um serviço na internet, confira sua conexão.";
         if (r.Contains("não encontrado no backend") || r.Contains("ollama list"))
-            return "Esse modelo não está instalado. Escolha outro no topo, ou feche e abra o app para baixá-lo.";
+            return "Esse modelo não existe ou não está instalado. Escolha outro em \"Modelo de IA\", na barra lateral.";
         if (r.Contains("limite de repetições"))
             return "Fiquei repetindo a mesma ação sem avançar. Tente pedir de forma mais específica, por exemplo dizendo o nome do arquivo.";
         if (r.Contains("limite de passos"))

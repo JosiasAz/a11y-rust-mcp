@@ -18,7 +18,7 @@ public sealed class AgentHost : IDisposable
     private Process? _process;
     private bool _startedByUs;
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(2) };
-    private readonly TaskCompletionSource<string> _token = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private TaskCompletionSource<string> _token = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private const string TokenPrefix = "A11Y_API_TOKEN=";
 
     /// Token da sessão para o header Authorization. Nulo até o agente subir.
@@ -86,7 +86,9 @@ public sealed class AgentHost : IDisposable
             ct.ThrowIfCancellationRequested();
             if (_process.HasExited)
             {
-                progress?.Report("O agente encerrou sozinho. Veja se o Ollama está aberto.");
+                progress?.Report(OllamaService.IsOllamaProvider
+                    ? "O agente encerrou sozinho. Veja se o Ollama está aberto."
+                    : "O agente encerrou sozinho. Confira a chave da API em \"Modelo de IA\".");
                 return false;
             }
             if (await IsHealthyAsync(ct))
@@ -137,7 +139,8 @@ public sealed class AgentHost : IDisposable
         catch { /* processo encerrou */ }
     }
 
-    public void Dispose()
+    /// Desliga o agente para que ele volte a subir lendo o provedor e a chave novos.
+    public void Stop()
     {
         UnloadOllamaModel();
         if (_startedByUs && _process is { HasExited: false })
@@ -150,6 +153,14 @@ public sealed class AgentHost : IDisposable
             catch { /* ignore */ }
         }
         _process?.Dispose();
+        _process = null;
+        _startedByUs = false;
+        _token = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
+    public void Dispose()
+    {
+        Stop();
         _http.Dispose();
     }
 

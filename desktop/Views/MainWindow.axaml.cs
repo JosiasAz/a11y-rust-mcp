@@ -32,11 +32,15 @@ public partial class MainWindow : Window
         if (ReferenceEquals(_boundVm, vm)) return;
 
         if (_boundVm is not null)
+        {
             _boundVm.ChatScrolled -= ScrollChatToEnd;
+            _boundVm.PropertyChanged -= OnVmPropertyChanged;
+        }
 
         _boundVm = vm;
         vm.AttachWindow(this);
         vm.ChatScrolled += ScrollChatToEnd;
+        vm.PropertyChanged += OnVmPropertyChanged;
     }
 
     private void ScrollChatToEnd()
@@ -55,6 +59,27 @@ public partial class MainWindow : Window
         e.Handled = true;
         await _boundVm.SendCommand.ExecuteAsync(null);
         this.FindControl<TextBox>("PromptBox")?.Focus();
+    }
+
+    // Foco ao trocar de tela: quem usa teclado ou leitor de tela entra na lista de provedores
+    // e, ao voltar, cai de novo no cartão "Modelo de IA" que abriu a tela.
+    private void OnVmPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.IsModelPanelOpen) || _boundVm is null) return;
+        var open = _boundVm.IsModelPanelOpen;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!open)
+            {
+                this.FindControl<Button>("ModelCard")?.Focus();
+                return;
+            }
+            if (this.FindControl<ListBox>("ProviderList") is { } list)
+            {
+                if (list.ContainerFromIndex(Math.Max(list.SelectedIndex, 0)) is { } item) item.Focus();
+                else list.Focus();
+            }
+        }, DispatcherPriority.Loaded);
     }
 
     // Botões da barra de título própria. O mouse é tratado pelo Windows (papel na barra);

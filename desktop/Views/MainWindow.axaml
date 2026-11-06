@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:A11yAgent.Desktop.ViewModels"
         xmlns:m="using:A11yAgent.Desktop.Models"
+        xmlns:svc="using:A11yAgent.Desktop.Services"
         xmlns:chrome="using:Avalonia.Controls.Chrome"
         x:Class="A11yAgent.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
@@ -142,18 +143,90 @@
       <Setter Property="Background" Value="{StaticResource MataSel}"/>
       <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
     </Style>
-    <!-- Seletor de modelo na barra escura: caixa clara opaca (texto 15,8:1) com borda dourada clara -->
-    <Style Selector="Border.lateral ComboBox">
+    <!-- Cartão "Modelo de IA" na barra escura (texto #F3E9DC sobre #33251A = 12,9:1) -->
+    <Style Selector="Button.modelo">
+      <Setter Property="Background" Value="{StaticResource MataSel}"/>
+      <Setter Property="BorderBrush" Value="#5A4434"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="10"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+    <Style Selector="Button.modelo:pointerover /template/ ContentPresenter, Button.modelo:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#3F2E21"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Garganta}"/>
+    </Style>
+
+    <!-- Tela "Modelo de IA": cada etapa é um cartão numerado -->
+    <Style Selector="Border.etapa">
       <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource MataTexto2}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="16"/>
+      <Setter Property="Padding" Value="22,20"/>
     </Style>
-    <Style Selector="Border.lateral ComboBox:pointerover /template/ Border#Background, Border.lateral ComboBox:disabled /template/ Border#Background">
+    <Style Selector="Border.numero">
+      <Setter Property="Width" Value="34"/>
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="CornerRadius" Value="17"/>
+      <Setter Property="Background" Value="{StaticResource Acao}"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.numero > TextBlock">
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="FontSize" Value="16"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Border.em-uso">
       <Setter Property="Background" Value="{StaticResource Nevoa}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource MataTexto2}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="8,8,18,8"/>
+      <Setter Property="MinWidth" Value="220"/>
     </Style>
-    <Style Selector="Border.lateral ComboBox:pointerover /template/ ContentControl#ContentPresenter, Border.lateral ComboBox:disabled /template/ ContentControl#ContentPresenter">
+    <!-- Listas de escolha: cartões; o marcado ganha fundo e borda ferrugem (não depende só da cor: a borda engrossa) -->
+    <Style Selector="ListBox.escolha">
+      <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="ListBox.escolha ListBoxItem">
+      <Setter Property="Background" Value="{StaticResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="Margin" Value="0,0,6,6"/>
+      <Setter Property="MinHeight" Value="44"/>
       <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+    </Style>
+    <Style Selector="ListBox.escolha ListBoxItem:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource Nevoa}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Texto3}"/>
+      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+    </Style>
+    <Style Selector="ListBox.escolha ListBoxItem:selected /template/ ContentPresenter, ListBox.escolha ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.escolha ListBoxItem:selected:focus /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource Selecao}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Acao}"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+    </Style>
+    <!-- Etiqueta LOCAL (verde #1F6B4F sobre #E3F0E9 = 5,6:1) / NUVEM (ferrugem #8A3B12 sobre #F6E2D2 = 6,6:1) -->
+    <Style Selector="Border.etiqueta">
+      <Setter Property="Background" Value="{StaticResource Selecao}"/>
+      <Setter Property="CornerRadius" Value="999"/>
+      <Setter Property="Padding" Value="8,2"/>
+    </Style>
+    <Style Selector="Border.etiqueta > TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource Acao}"/>
+    </Style>
+    <Style Selector="Border.etiqueta.local">
+      <Setter Property="Background" Value="#E3F0E9"/>
+    </Style>
+    <Style Selector="Border.etiqueta.local > TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource FolhaNova}"/>
     </Style>
     <!-- Cartão da pasta: só cresce quando tem lista de arquivos -->
     <Style Selector="Border.pasta">
@@ -326,7 +399,8 @@
     </Grid>
   </Border>
 
-  <Grid ColumnDefinitions="272,*">
+  <Panel>
+  <Grid ColumnDefinitions="272,*" IsVisible="{Binding !IsModelPanelOpen}">
 
     <!-- ================= Barra lateral (mata de igapó) ================= -->
     <Border Classes="lateral" Background="{StaticResource Mata}" Padding="18,12,18,20">
@@ -339,21 +413,29 @@
           <TextBlock Classes="rotulo" Text="PASTA DE TRABALHO"/>
         </StackPanel>
 
-        <!-- Rodapé: modelo e estado -->
+        <!-- Rodapé: cartão do modelo de IA (abre a tela de escolha) -->
         <StackPanel DockPanel.Dock="Bottom" Spacing="12">
-          <StackPanel Spacing="6" IsVisible="{Binding HasModels}">
+          <StackPanel Spacing="6">
             <TextBlock Classes="rotulo" Text="MODELO DE IA"/>
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
-              <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}"
-                        MinHeight="44" HorizontalAlignment="Stretch" FontSize="15" VerticalContentAlignment="Center"
-                        IsEnabled="{Binding !IsBusy}"
-                        ToolTip.Tip="Modelos menores respondem mais rápido."
-                        AutomationProperties.Name="Modelo de IA"
-                        AutomationProperties.HelpText="Escolhe qual modelo instalado no Ollama faz o trabalho. Modelos menores respondem mais rápido."/>
-              <Button Grid.Column="1" Classes="icone-lateral" Content="⟳" FontSize="18" Command="{Binding RefreshModelsCommand}"
-                      IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Atualizar lista de modelos"
-                      AutomationProperties.Name="Atualizar lista de modelos"/>
-            </Grid>
+            <Button Name="ModelCard" Classes="modelo" IsEnabled="{Binding !IsBusy}"
+                    Command="{Binding OpenModelPanelCommand}"
+                    ToolTip.Tip="Trocar o provedor ou o modelo de IA"
+                    AutomationProperties.Name="{Binding ActiveProvider.Name, StringFormat='Modelo de IA: {0}. Clique para trocar.'}"
+                    AutomationProperties.HelpText="{Binding ModelSummary}">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                <Border Width="36" Height="36" CornerRadius="10" Background="{StaticResource Mata}">
+                  <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                  <TextBlock Text="{Binding ActiveProvider.Name}" FontWeight="Bold" FontSize="15"
+                             Foreground="{StaticResource MataTexto}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding ModelSummary}" FontSize="13" Foreground="{StaticResource Garganta}"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ModelSummary}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="Trocar" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"
+                           Foreground="{StaticResource MataTexto2}"/>
+              </Grid>
+            </Button>
           </StackPanel>
           <TextBlock Text="Feito em Manaus, Amazonas" FontSize="12.5" Foreground="{StaticResource MataTexto2}"/>
         </StackPanel>
@@ -584,7 +666,7 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-              <TextBlock Classes="muted" Text="🔒  Tudo roda no seu computador. Nada do que você escreve sai daqui."/>
+              <TextBlock Classes="muted" Text="{Binding PrivacyText}"/>
             </StackPanel>
           </ScrollViewer>
 
@@ -727,5 +809,173 @@
       </DockPanel>
     </DockPanel>
   </Grid>
+
+  <!-- ================= Tela "Modelo de IA": ocupa o lugar do chat até a pessoa voltar (Esc também volta) ================= -->
+  <DockPanel IsVisible="{Binding IsModelPanelOpen}" Background="{StaticResource Nevoa}">
+    <!-- Cabeçalho fixo: como voltar e o que está em uso agora -->
+    <Border DockPanel.Dock="Top" Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}"
+            BorderThickness="0,0,0,1" Padding="32,16">
+      <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
+        <Button Classes="secondary" Content="←  Voltar ao chat" Command="{Binding CloseModelPanelCommand}"
+                VerticalAlignment="Center" AutomationProperties.HelpText="Fecha esta tela e volta para a conversa. Atalho Esc."/>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+          <TextBlock Text="Modelo de IA" FontSize="24" FontWeight="Bold"/>
+          <TextBlock Classes="muted" Text="Escolha onde a inteligência artificial roda e qual modelo faz o trabalho."/>
+        </StackPanel>
+        <!-- O que está em uso: ícone num quadrado + nome e modelo, como o cartão da barra lateral -->
+        <Border Grid.Column="2" Classes="em-uso" VerticalAlignment="Center"
+                AutomationProperties.Name="{Binding ActiveProvider.Name, StringFormat='Em uso agora: {0}'}"
+                AutomationProperties.HelpText="{Binding ModelSummary}">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+            <Border Width="40" Height="40" CornerRadius="10" Background="{StaticResource Selecao}">
+              <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="18"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+              <TextBlock Text="Em uso agora" FontSize="12" Foreground="{StaticResource Texto2}"/>
+              <TextBlock Text="{Binding ActiveProvider.Name}" FontSize="15" FontWeight="Bold"
+                         MaxWidth="240" TextTrimming="CharacterEllipsis"/>
+              <TextBlock Text="{Binding ModelSummary}" FontSize="12.5" MaxWidth="240" TextTrimming="CharacterEllipsis"
+                         ToolTip.Tip="{Binding ModelSummary}"
+                         FontFamily="Cascadia Mono, Consolas, monospace" Foreground="{StaticResource Texto2}"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+      </Grid>
+    </Border>
+
+    <!-- Rodapé fixo: a ação principal nunca some da vista -->
+    <Border DockPanel.Dock="Bottom" Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}"
+            BorderThickness="0,1,0,0" Padding="32,14">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
+        <StackPanel VerticalAlignment="Center" Spacing="8">
+          <TextBlock Text="{Binding ProviderMessage}" FontSize="15" FontWeight="Bold" TextWrapping="Wrap"
+                     AutomationProperties.LiveSetting="Polite"
+                     AutomationProperties.Name="{Binding ProviderMessage}"/>
+          <ProgressBar Height="6" IsIndeterminate="True" IsVisible="{Binding IsConnecting}" MaxWidth="420" HorizontalAlignment="Left"
+                       Foreground="{StaticResource Acao}" Background="{StaticResource Linha}"
+                       AutomationProperties.Name="Conectando"/>
+        </StackPanel>
+        <Panel Grid.Column="1">
+          <Button Classes="primary" MinWidth="240" HorizontalContentAlignment="Center"
+                  Content="{Binding ConnectText}" Command="{Binding ConnectProviderCommand}"
+                  IsVisible="{Binding ShowConnect}" IsEnabled="{Binding !IsConnecting}"/>
+          <Button Classes="primary" MinWidth="240" HorizontalContentAlignment="Center"
+                  Content="Pronto, voltar ao chat" Command="{Binding CloseModelPanelCommand}"
+                  IsVisible="{Binding !ShowConnect}"/>
+        </Panel>
+      </Grid>
+    </Border>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel MaxWidth="960" Margin="32,24,32,32" Spacing="18">
+
+        <!-- Etapa 1: onde a IA roda -->
+        <Border Classes="etapa">
+          <StackPanel Spacing="14">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="numero"><TextBlock Text="1"/></Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Classes="h2" Text="Onde a IA roda"/>
+                <TextBlock Classes="muted" Text="No seu computador é grátis e privado. Na internet é mais rápido e precisa de uma chave."/>
+              </StackPanel>
+            </StackPanel>
+            <ListBox Name="ProviderList" Classes="escolha" ItemsSource="{Binding Providers}"
+                     SelectedItem="{Binding PickedProvider}" IsEnabled="{Binding !IsConnecting}"
+                     AutomationProperties.Name="Onde a inteligência artificial roda">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}" x:DataType="svc:AiProvider">
+                  <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+                  <Setter Property="AutomationProperties.HelpText" Value="{Binding Tag}"/>
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:AiProvider">
+                  <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                      <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Bold" FontSize="15"
+                                 VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}"/>
+                      <Border Grid.Column="2" Classes="etiqueta" Classes.local="{Binding IsLocal}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" LetterSpacing="0.5"/>
+                      </Border>
+                    </Grid>
+                    <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{StaticResource Texto2}" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </Border>
+
+        <!-- Etapa 2: chave (só para serviços na internet) -->
+        <Border Classes="etapa" IsVisible="{Binding NeedsKey}">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <Border Classes="numero"><TextBlock Text="2"/></Border>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock Classes="h2" Text="{Binding PickedProvider.Name, StringFormat='Sua chave de {0}'}"/>
+                  <TextBlock Classes="muted" Text="É como uma senha que libera o uso do serviço. Você cria no site do provedor."/>
+                </StackPanel>
+              </StackPanel>
+              <Button Grid.Column="1" Classes="secondary" Content="Criar uma chave ↗" VerticalAlignment="Center"
+                      Command="{Binding OpenKeyPageCommand}"
+                      AutomationProperties.HelpText="Abre no navegador a página onde você cria a chave"/>
+            </Grid>
+            <TextBox Classes="revealPasswordButton" PasswordChar="•" Text="{Binding ApiKeyInput}"
+                     PlaceholderText="{Binding KeyPlaceholder}" FontSize="15" MinHeight="48"
+                     VerticalContentAlignment="Center" IsEnabled="{Binding !IsConnecting}"
+                     AutomationProperties.Name="Chave da API"
+                     AutomationProperties.HelpText="{Binding KeyPlaceholder}"/>
+            <Border Background="{StaticResource AvisoSuave}" BorderBrush="{StaticResource AvisoBorda}"
+                    BorderThickness="1" CornerRadius="10" Padding="14,10">
+              <TextBlock Text="{Binding PickedPrivacy}" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource Texto}"/>
+            </Border>
+            <TextBlock Classes="muted" FontSize="13"
+                       Text="🔐  A chave fica guardada criptografada neste computador, só para o seu usuário do Windows."/>
+          </StackPanel>
+        </Border>
+
+        <!-- Etapa 3: modelo (aparece depois de conectar) -->
+        <Border Classes="etapa" IsVisible="{Binding ShowModelPicker}">
+          <StackPanel Spacing="12">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <Border Classes="numero"><TextBlock Text="{Binding ModelStepNumber}"/></Border>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Classes="h2" Text="Qual modelo faz o trabalho"/>
+                <TextBlock Classes="muted" Text="{Binding ModelHint}"/>
+              </StackPanel>
+            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding ModelFilter}" PlaceholderText="🔍  Procurar modelo pelo nome"
+                       FontSize="15" MinHeight="48" VerticalContentAlignment="Center"
+                       AutomationProperties.Name="Procurar modelo pelo nome"/>
+              <Button Grid.Column="1" Classes="secondary" Content="⟳  Atualizar"
+                      Command="{Binding RefreshModelsCommand}"
+                      AutomationProperties.Name="Atualizar lista de modelos"/>
+            </Grid>
+            <ListBox Classes="escolha" ItemsSource="{Binding FilteredModels}" SelectedItem="{Binding PickedModel}"
+                     MaxHeight="340" AutomationProperties.Name="Modelos disponíveis">
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" FontFamily="Cascadia Mono, Consolas, monospace" FontSize="13.5"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Classes="muted" FontSize="13" Text="{Binding ModelCountText}"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+  </Panel>
   </DockPanel>
 </Window>
