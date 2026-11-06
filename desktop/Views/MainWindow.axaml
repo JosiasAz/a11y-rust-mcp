@@ -13,8 +13,8 @@
         WindowDecorations="BorderOnly"
         Width="1360" Height="860"
         MinWidth="1000" MinHeight="660"
-        Background="{StaticResource Nevoa}"
-        Foreground="{StaticResource Texto}"
+        Background="{DynamicResource Nevoa}"
+        Foreground="{DynamicResource Texto}"
         FontSize="16">
 
   <Design.DataContext>
@@ -31,10 +31,10 @@
     <Style Selector="TextBlock.h2">
       <Setter Property="FontSize" Value="19"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
     </Style>
     <Style Selector="TextBlock.muted, SelectableTextBlock.muted">
-      <Setter Property="Foreground" Value="{StaticResource Texto3}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto3}"/>
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
@@ -43,11 +43,11 @@
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="LetterSpacing" Value="1"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto2}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto2}"/>
     </Style>
     <Style Selector="Border.tecla">
-      <Setter Property="Background" Value="{StaticResource Nevoa}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Nevoa}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1,1,1,2"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Padding" Value="7,2"/>
@@ -55,7 +55,7 @@
     <Style Selector="Border.tecla > TextBlock">
       <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, monospace"/>
       <Setter Property="FontSize" Value="12.5"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto2}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto2}"/>
     </Style>
 
     <!-- ===== Botões: alvo mínimo de 44 px ===== -->
@@ -66,34 +66,34 @@
     </Style>
     <!-- Ação principal: ferrugem do uirapuru (branco sobre #B44A12 = 5,2:1) -->
     <Style Selector="Button.primary">
-      <Setter Property="Background" Value="{StaticResource Acao}"/>
+      <Setter Property="Background" Value="{DynamicResource Acao}"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="FontWeight" Value="Bold"/>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter, Button.primary:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource AcaoHover}"/>
+      <Setter Property="Background" Value="{DynamicResource AcaoHover}"/>
       <Setter Property="Foreground" Value="White"/>
     </Style>
     <Style Selector="Button.secondary">
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Texto3}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Texto3}"/>
       <Setter Property="BorderThickness" Value="1.5"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
       <Setter Property="FontWeight" Value="Bold"/>
     </Style>
     <Style Selector="Button.secondary:pointerover /template/ ContentPresenter, Button.secondary:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource Selecao}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Texto3}"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Background" Value="{DynamicResource Selecao}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Texto3}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
     </Style>
     <Style Selector="Button.link">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto2}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto2}"/>
       <Setter Property="Padding" Value="10,6"/>
     </Style>
     <Style Selector="Button.idea">
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="12"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -103,49 +103,49 @@
       <Setter Property="Padding" Value="14,12"/>
     </Style>
     <Style Selector="Button.idea:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Texto3}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Texto3}"/>
     </Style>
 
     <!-- ===== Barra lateral (mata de igapó) ===== -->
     <Style Selector="Button.nova">
-      <Setter Property="Background" Value="{StaticResource Garganta}"/>
-      <Setter Property="Foreground" Value="{StaticResource Mata}"/>
+      <Setter Property="Background" Value="{DynamicResource Garganta}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Mata}"/>
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Button.nova:pointerover /template/ ContentPresenter, Button.nova:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource GargantaHover}"/>
-      <Setter Property="Foreground" Value="{StaticResource Mata}"/>
+      <Setter Property="Background" Value="{DynamicResource GargantaHover}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Mata}"/>
     </Style>
     <Style Selector="Button.contorno">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="BorderBrush" Value="{StaticResource MataTexto2}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource MataTexto2}"/>
       <Setter Property="BorderThickness" Value="1.5"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Button.contorno:pointerover /template/ ContentPresenter, Button.contorno:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource MataSel}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource MataTexto2}"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Background" Value="{DynamicResource MataSel}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource MataTexto2}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
     </Style>
     <Style Selector="Button.icone-lateral">
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
       <Setter Property="Padding" Value="10,6"/>
       <Setter Property="MinWidth" Value="44"/>
     </Style>
     <Style Selector="Button.icone-lateral:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource MataSel}"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Background" Value="{DynamicResource MataSel}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
     </Style>
     <!-- Cartão "Modelo de IA" na barra escura (texto #F3E9DC sobre #33251A = 12,9:1) -->
     <Style Selector="Button.modelo">
-      <Setter Property="Background" Value="{StaticResource MataSel}"/>
+      <Setter Property="Background" Value="{DynamicResource MataSel}"/>
       <Setter Property="BorderBrush" Value="#5A4434"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="12"/>
@@ -155,13 +155,13 @@
     </Style>
     <Style Selector="Button.modelo:pointerover /template/ ContentPresenter, Button.modelo:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="#3F2E21"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Garganta}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Garganta}"/>
     </Style>
 
     <!-- Tela "Modelo de IA": cada etapa é um cartão numerado -->
     <Style Selector="Border.etapa">
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="16"/>
       <Setter Property="Padding" Value="22,20"/>
@@ -170,7 +170,7 @@
       <Setter Property="Width" Value="34"/>
       <Setter Property="Height" Value="34"/>
       <Setter Property="CornerRadius" Value="17"/>
-      <Setter Property="Background" Value="{StaticResource Acao}"/>
+      <Setter Property="Background" Value="{DynamicResource Acao}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.numero > TextBlock">
@@ -181,8 +181,8 @@
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.em-uso">
-      <Setter Property="Background" Value="{StaticResource Nevoa}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Nevoa}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="14"/>
       <Setter Property="Padding" Value="8,8,18,8"/>
@@ -193,40 +193,40 @@
       <Setter Property="Background" Value="Transparent"/>
     </Style>
     <Style Selector="ListBox.escolha ListBoxItem">
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="10"/>
       <Setter Property="Padding" Value="12,8"/>
       <Setter Property="Margin" Value="0,0,6,6"/>
       <Setter Property="MinHeight" Value="44"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
     </Style>
     <Style Selector="ListBox.escolha ListBoxItem:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource Nevoa}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Texto3}"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Background" Value="{DynamicResource Nevoa}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Texto3}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
     </Style>
     <Style Selector="ListBox.escolha ListBoxItem:selected /template/ ContentPresenter, ListBox.escolha ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox.escolha ListBoxItem:selected:focus /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource Selecao}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Acao}"/>
+      <Setter Property="Background" Value="{DynamicResource Selecao}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Acao}"/>
       <Setter Property="BorderThickness" Value="2"/>
-      <Setter Property="Foreground" Value="{StaticResource Texto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Texto}"/>
     </Style>
     <!-- Etiqueta LOCAL (verde #1F6B4F sobre #E3F0E9 = 5,6:1) / NUVEM (ferrugem #8A3B12 sobre #F6E2D2 = 6,6:1) -->
     <Style Selector="Border.etiqueta">
-      <Setter Property="Background" Value="{StaticResource Selecao}"/>
+      <Setter Property="Background" Value="{DynamicResource Selecao}"/>
       <Setter Property="CornerRadius" Value="999"/>
       <Setter Property="Padding" Value="8,2"/>
     </Style>
     <Style Selector="Border.etiqueta > TextBlock">
-      <Setter Property="Foreground" Value="{StaticResource Acao}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AcaoTexto}"/>
     </Style>
     <Style Selector="Border.etiqueta.local">
-      <Setter Property="Background" Value="#E3F0E9"/>
+      <Setter Property="Background" Value="{DynamicResource FolhaNovaSuave}"/>
     </Style>
     <Style Selector="Border.etiqueta.local > TextBlock">
-      <Setter Property="Foreground" Value="{StaticResource FolhaNova}"/>
+      <Setter Property="Foreground" Value="{DynamicResource FolhaNova}"/>
     </Style>
     <!-- Cartão da pasta: só cresce quando tem lista de arquivos -->
     <Style Selector="Border.pasta">
@@ -243,13 +243,13 @@
       <Setter Property="Padding" Value="0"/>
       <Setter Property="CornerRadius" Value="0"/>
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Button.legenda:pointerover /template/ ContentPresenter, Button.legenda:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource MataSel}"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Background" Value="{DynamicResource MataSel}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
     </Style>
     <Style Selector="Button.legenda.fechar:pointerover /template/ ContentPresenter, Button.legenda.fechar:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="#C42B1C"/>
@@ -260,14 +260,14 @@
     </Style>
 
     <Style Selector="ListBox#FileList ListBoxItem">
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
       <Setter Property="Padding" Value="10,8"/>
       <Setter Property="CornerRadius" Value="8"/>
       <Setter Property="MinHeight" Value="40"/>
     </Style>
     <Style Selector="ListBox#FileList ListBoxItem:pointerover /template/ ContentPresenter, ListBox#FileList ListBoxItem:selected /template/ ContentPresenter, ListBox#FileList ListBoxItem:selected:pointerover /template/ ContentPresenter, ListBox#FileList ListBoxItem:selected:focus /template/ ContentPresenter">
-      <Setter Property="Background" Value="{StaticResource MataSel}"/>
-      <Setter Property="Foreground" Value="{StaticResource MataTexto}"/>
+      <Setter Property="Background" Value="{DynamicResource MataSel}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MataTexto}"/>
     </Style>
 
     <!--
@@ -286,29 +286,29 @@
     <Style Selector="Border.bubble">
       <Setter Property="CornerRadius" Value="14"/>
       <Setter Property="Padding" Value="18"/>
-      <Setter Property="Background" Value="{StaticResource Folha}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Linha}"/>
+      <Setter Property="Background" Value="{DynamicResource Folha}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Linha}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="HorizontalAlignment" Value="Stretch"/>
     </Style>
     <Style Selector="Border.bubble.user">
-      <Setter Property="Background" Value="{StaticResource Selecao}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource Selecao}"/>
+      <Setter Property="Background" Value="{DynamicResource Selecao}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Selecao}"/>
       <Setter Property="CornerRadius" Value="14,14,4,14"/>
       <Setter Property="Margin" Value="120,0,0,0"/>
     </Style>
     <Style Selector="Border.bubble.error">
-      <Setter Property="Background" Value="{StaticResource AcaiSuave}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource AcaiBorda}"/>
+      <Setter Property="Background" Value="{DynamicResource AcaiSuave}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource AcaiBorda}"/>
     </Style>
     <!-- Ícone do passo: a cor só reforça; o estado também está no símbolo e no texto -->
     <Style Selector="TextBlock.icone">
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="{StaticResource Acao}"/>
+      <Setter Property="Foreground" Value="{DynamicResource AcaoTexto}"/>
     </Style>
-    <Style Selector="TextBlock.icone.feito"><Setter Property="Foreground" Value="{StaticResource FolhaNova}"/></Style>
-    <Style Selector="TextBlock.icone.pendente"><Setter Property="Foreground" Value="{StaticResource Texto3}"/></Style>
-    <Style Selector="TextBlock.icone.falhou"><Setter Property="Foreground" Value="{StaticResource Acai}"/></Style>
+    <Style Selector="TextBlock.icone.feito"><Setter Property="Foreground" Value="{DynamicResource FolhaNova}"/></Style>
+    <Style Selector="TextBlock.icone.pendente"><Setter Property="Foreground" Value="{DynamicResource Texto3}"/></Style>
+    <Style Selector="TextBlock.icone.falhou"><Setter Property="Foreground" Value="{DynamicResource Acai}"/></Style>
   </Window.Styles>
 
   <DockPanel>
@@ -318,7 +318,7 @@
     O Windows continua cuidando de arrastar, clique duplo para maximizar e dos layouts de encaixe:
     cada parte diz o seu papel com chrome:WindowDecorationProperties.ElementRole.
   -->
-  <Border DockPanel.Dock="Top" Classes="lateral" Height="44" Background="{StaticResource Mata}"
+  <Border DockPanel.Dock="Top" Classes="lateral" Height="44" Background="{DynamicResource Mata}"
           chrome:WindowDecorationProperties.ElementRole="TitleBar">
     <Grid ColumnDefinitions="272,*,Auto">
       <!-- Marca (decorativa para o leitor de tela: o título da janela já diz "Uirapuru") -->
@@ -342,31 +342,31 @@
               </Canvas>
             </Viewbox>
             <TextBlock Text="Uirapuru" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
-                       Foreground="{StaticResource MataTexto}"/>
-            <Border Background="{StaticResource MataSel}" CornerRadius="6" Padding="7,1" VerticalAlignment="Center">
+                       Foreground="{DynamicResource MataTexto}"/>
+            <Border Background="{DynamicResource MataSel}" CornerRadius="6" Padding="7,1" VerticalAlignment="Center">
               <TextBlock Text="MANAUS" FontSize="10.5" FontWeight="Bold" LetterSpacing="1"
-                         Foreground="{StaticResource Garganta}"/>
+                         Foreground="{DynamicResource Garganta}"/>
             </Border>
       </StackPanel>
 
       <!-- Onde estou e como está: pasta aberta + estado do agente -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" Margin="32,0,0,0" VerticalAlignment="Center">
         <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
-                   Foreground="{StaticResource MataTexto}" FontWeight="Bold"
+                   Foreground="{DynamicResource MataTexto}" FontWeight="Bold"
                    Text="{Binding WorkspaceName, StringFormat=📁  {0}}" IsVisible="{Binding HasWorkspace}"
                    AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
         <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
-                   Foreground="{StaticResource MataTexto2}" Text="Nenhuma pasta aberta" IsVisible="{Binding !HasWorkspace}"/>
-        <Border Background="{StaticResource MataSel}" CornerRadius="999" Padding="10,3" VerticalAlignment="Center"
+                   Foreground="{DynamicResource MataTexto2}" Text="Nenhuma pasta aberta" IsVisible="{Binding !HasWorkspace}"/>
+        <Border Background="{DynamicResource MataSel}" CornerRadius="999" Padding="10,3" VerticalAlignment="Center"
                 IsHitTestVisible="False">
           <StackPanel Orientation="Horizontal" Spacing="7">
-            <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{StaticResource Garganta}"
+            <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{DynamicResource Garganta}"
                      Classes.off="{Binding IsOffline}">
               <Ellipse.Styles>
                 <Style Selector="Ellipse.off"><Setter Property="Fill" Value="#E8A0B4"/></Style>
               </Ellipse.Styles>
             </Ellipse>
-            <TextBlock Text="{Binding BadgeText}" FontSize="13" Foreground="{StaticResource MataTexto}"
+            <TextBlock Text="{Binding BadgeText}" FontSize="13" Foreground="{DynamicResource MataTexto}"
                        AutomationProperties.Name="{Binding BadgeText, StringFormat=Estado do agente: {0}}"/>
           </StackPanel>
         </Border>
@@ -375,6 +375,20 @@
       <!-- Botões da janela. O papel faz o Windows tratar o clique do mouse (inclui os layouts de encaixe
            do Windows 11 no maximizar); o Click atende quem usa teclado. -->
       <StackPanel Grid.Column="2" Orientation="Horizontal">
+        <!-- Tema claro/escuro: a lua leva ao escuro, o sol volta ao claro -->
+        <!-- Papel User: o clique é do botão, não vira "arrastar a janela" -->
+        <Button Classes="legenda" Command="{Binding ToggleThemeCommand}"
+                chrome:WindowDecorationProperties.ElementRole="User"
+                ToolTip.Tip="{Binding ThemeToggleText}"
+                AutomationProperties.Name="{Binding ThemeToggleText}">
+          <Panel>
+            <Path Data="M13.5,10.5 A6,6 0 1 1 5.5,2.5 A4.8,4.8 0 0 0 13.5,10.5 Z" Stroke="{Binding $parent[Button].Foreground}"
+                  StrokeThickness="1.3" StrokeJoin="Round" IsVisible="{Binding !IsDark}"/>
+            <Path Data="M11,8 A3,3 0 1 1 5,8 A3,3 0 1 1 11,8 Z M8,0.5 V2.5 M8,13.5 V15.5 M0.5,8 H2.5 M13.5,8 H15.5 M2.7,2.7 L4.1,4.1 M11.9,11.9 L13.3,13.3 M2.7,13.3 L4.1,11.9 M11.9,4.1 L13.3,2.7"
+                  Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.3" StrokeLineCap="Round"
+                  IsVisible="{Binding IsDark}"/>
+          </Panel>
+        </Button>
         <Button Classes="legenda" Click="OnMinimizeClick" ToolTip.Tip="Minimizar"
                 chrome:WindowDecorationProperties.ElementRole="MinimizeButton"
                 AutomationProperties.Name="Minimizar">
@@ -403,7 +417,7 @@
   <Grid ColumnDefinitions="272,*" IsVisible="{Binding !IsModelPanelOpen}">
 
     <!-- ================= Barra lateral (mata de igapó) ================= -->
-    <Border Classes="lateral" Background="{StaticResource Mata}" Padding="18,12,18,20">
+    <Border Classes="lateral" Background="{DynamicResource Mata}" Padding="18,12,18,20">
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Spacing="20">
           <Button Classes="nova" Content="+  Nova conversa" Command="{Binding NewConversationCommand}"
@@ -423,31 +437,31 @@
                     AutomationProperties.Name="{Binding ActiveProvider.Name, StringFormat='Modelo de IA: {0}. Clique para trocar.'}"
                     AutomationProperties.HelpText="{Binding ModelSummary}">
               <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
-                <Border Width="36" Height="36" CornerRadius="10" Background="{StaticResource Mata}">
+                <Border Width="36" Height="36" CornerRadius="10" Background="{DynamicResource Mata}">
                   <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                   <TextBlock Text="{Binding ActiveProvider.Name}" FontWeight="Bold" FontSize="15"
-                             Foreground="{StaticResource MataTexto}" TextTrimming="CharacterEllipsis"/>
-                  <TextBlock Text="{Binding ModelSummary}" FontSize="13" Foreground="{StaticResource Garganta}"
+                             Foreground="{DynamicResource MataTexto}" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding ModelSummary}" FontSize="13" Foreground="{DynamicResource Garganta}"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ModelSummary}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="2" Text="Trocar" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"
-                           Foreground="{StaticResource MataTexto2}"/>
+                           Foreground="{DynamicResource MataTexto2}"/>
               </Grid>
             </Button>
           </StackPanel>
-          <TextBlock Text="Feito em Manaus, Amazonas" FontSize="12.5" Foreground="{StaticResource MataTexto2}"/>
+          <TextBlock Text="Feito em Manaus, Amazonas" FontSize="12.5" Foreground="{DynamicResource MataTexto2}"/>
         </StackPanel>
 
         <!-- Cartão da pasta -->
         <Border Classes="pasta" Classes.cheia="{Binding HasWorkspace}"
-                BorderBrush="{StaticResource MataSel}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,10,0,18">
+                BorderBrush="{DynamicResource MataSel}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,10,0,18">
           <Panel>
             <StackPanel Spacing="10" IsVisible="{Binding !HasWorkspace}">
-              <TextBlock Text="Nenhuma pasta ainda" FontSize="15" Foreground="{StaticResource MataTexto}"/>
+              <TextBlock Text="Nenhuma pasta ainda" FontSize="15" Foreground="{DynamicResource MataTexto}"/>
               <TextBlock Text="É o único lugar onde eu posso mexer. Seus outros arquivos ficam seguros."
-                         FontSize="13.5" TextWrapping="Wrap" Foreground="{StaticResource MataTexto2}"/>
+                         FontSize="13.5" TextWrapping="Wrap" Foreground="{DynamicResource MataTexto2}"/>
               <Button Classes="contorno" Content="Escolher pasta" Command="{Binding PickWorkspaceCommand}"
                       IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Atalho: Ctrl+O"
                       AutomationProperties.HelpText="Escolhe a pasta onde o assistente pode criar e editar arquivos. Atalho Ctrl O."/>
@@ -456,7 +470,7 @@
             <DockPanel IsVisible="{Binding HasWorkspace}">
               <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
                 <TextBlock Text="{Binding WorkspaceName}" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"
-                           Foreground="{StaticResource Garganta}" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource Garganta}" TextTrimming="CharacterEllipsis"
                            ToolTip.Tip="{Binding WorkspacePath}"
                            AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
                 <Button Grid.Column="1" Classes="icone-lateral" Content="⟳" FontSize="18"
@@ -465,7 +479,7 @@
               </Grid>
               <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,10,0,0">
                 <TextBlock Text="Enter ou clique duplo abre o arquivo." FontSize="13" TextWrapping="Wrap"
-                           Foreground="{StaticResource MataTexto2}"/>
+                           Foreground="{DynamicResource MataTexto2}"/>
                 <Button Classes="contorno" Content="{Binding FolderButtonText}" Command="{Binding PickWorkspaceCommand}"
                         IsEnabled="{Binding !IsBusy}" ToolTip.Tip="Atalho: Ctrl+O"
                         AutomationProperties.HelpText="Troca a pasta onde o assistente trabalha. Atalho Ctrl O."/>
@@ -490,7 +504,7 @@
     <DockPanel Grid.Column="1">
 
       <!-- Status ao vivo: o leitor de tela anuncia cada mudança -->
-      <Border DockPanel.Dock="Top" Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}"
+      <Border DockPanel.Dock="Top" Background="{DynamicResource Folha}" BorderBrush="{DynamicResource Linha}"
               BorderThickness="0,0,0,1" Padding="32,14">
         <StackPanel Spacing="10">
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -503,14 +517,14 @@
                     AutomationProperties.HelpText="Tenta ligar o assistente outra vez"/>
           </Grid>
           <ProgressBar Height="6" IsIndeterminate="True" IsVisible="{Binding IsBusy}"
-                       Foreground="{StaticResource Acao}" Background="{StaticResource Linha}"
+                       Foreground="{DynamicResource Acao}" Background="{DynamicResource Linha}"
                        AutomationProperties.Name="Trabalhando"/>
 
           <!-- Ollama fechado: o que aconteceu e o que fazer, em passos -->
-          <Border IsVisible="{Binding IsOllamaDown}" Background="{StaticResource AcaiSuave}"
-                  BorderBrush="{StaticResource AcaiBorda}" BorderThickness="1" CornerRadius="12" Padding="18,14">
+          <Border IsVisible="{Binding IsOllamaDown}" Background="{DynamicResource AcaiSuave}"
+                  BorderBrush="{DynamicResource AcaiBorda}" BorderThickness="1" CornerRadius="12" Padding="18,14">
             <StackPanel Spacing="8">
-              <TextBlock Text="⚠  O Ollama não está aberto" FontSize="17" FontWeight="Bold" Foreground="{StaticResource Acai}"/>
+              <TextBlock Text="⚠  O Ollama não está aberto" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource Acai}"/>
               <TextBlock TextWrapping="Wrap" FontSize="15"
                          Text="O Ollama é o programa que roda a inteligência artificial no seu computador. Nada do que você escreve sai daqui."/>
               <TextBlock TextWrapping="Wrap" FontSize="15"
@@ -519,8 +533,8 @@
           </Border>
 
           <!-- Modelo não instalado: baixa só depois do clique, com progresso -->
-          <Border IsVisible="{Binding IsModelMissing}" Background="{StaticResource AvisoSuave}"
-                  BorderBrush="{StaticResource AvisoBorda}" BorderThickness="1" CornerRadius="12" Padding="18,14">
+          <Border IsVisible="{Binding IsModelMissing}" Background="{DynamicResource AvisoSuave}"
+                  BorderBrush="{DynamicResource AvisoBorda}" BorderThickness="1" CornerRadius="12" Padding="18,14">
             <StackPanel Spacing="10">
               <TextBlock TextWrapping="Wrap" FontSize="15"
                          Text="{Binding ModelToDownload, StringFormat=Falta baixar o modelo de IA {0}. São alguns gigabytes; use uma internet sem limite.}"/>
@@ -533,10 +547,10 @@
               </StackPanel>
               <ProgressBar Minimum="0" Maximum="100" Value="{Binding PullPercent}" Height="12"
                            IsVisible="{Binding IsPullingModel}" ShowProgressText="True"
-                           Foreground="{StaticResource Acao}" Background="{StaticResource Folha}"
-                           BorderBrush="{StaticResource Texto3}" BorderThickness="1"
+                           Foreground="{DynamicResource Acao}" Background="{DynamicResource Folha}"
+                           BorderBrush="{DynamicResource Texto3}" BorderThickness="1"
                            AutomationProperties.Name="Progresso do download do modelo"/>
-              <TextBlock Text="{Binding PullText}" FontSize="15" Foreground="{StaticResource Texto2}" TextWrapping="Wrap"
+              <TextBlock Text="{Binding PullText}" FontSize="15" Foreground="{DynamicResource Texto2}" TextWrapping="Wrap"
                          AutomationProperties.Name="{Binding PullText}"
                          AutomationProperties.LiveSetting="Polite"/>
             </StackPanel>
@@ -546,11 +560,11 @@
 
       <!-- Prévia (só aparece com um arquivo aberto) -->
       <Border DockPanel.Dock="Right" Width="400" IsVisible="{Binding HasPreview}"
-              Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}" BorderThickness="1,0,0,0" Padding="20">
+              Background="{DynamicResource Folha}" BorderBrush="{DynamicResource Linha}" BorderThickness="1,0,0,0" Padding="20">
         <DockPanel>
           <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
             <StackPanel>
-              <TextBlock Text="Prévia" FontSize="13" Foreground="{StaticResource Texto2}"/>
+              <TextBlock Text="Prévia" FontSize="13" Foreground="{DynamicResource Texto2}"/>
               <TextBlock Text="{Binding SelectedFile}" FontSize="16" FontWeight="Bold" TextTrimming="CharacterEllipsis"
                          FontFamily="Cascadia Mono, Consolas, monospace" ToolTip.Tip="{Binding SelectedFile}"/>
             </StackPanel>
@@ -562,8 +576,8 @@
                    AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True"
                    FontFamily="Cascadia Mono, Consolas, monospace" FontSize="13.5"
                    Padding="14" BorderThickness="0" CornerRadius="12"
-                   Background="{StaticResource Mata}" Foreground="{StaticResource MataTexto}"
-                   SelectionBrush="{StaticResource MataSel}" SelectionForegroundBrush="{StaticResource MataTexto}"
+                   Background="{DynamicResource Mata}" Foreground="{DynamicResource MataTexto}"
+                   SelectionBrush="{DynamicResource MataSel}" SelectionForegroundBrush="{DynamicResource MataTexto}"
                    AutomationProperties.Name="{Binding SelectedFile, StringFormat='Conteúdo do arquivo {0} (somente leitura)'}">
             <!-- Código sobre o Rio Negro em todos os estados (texto 14,7:1) -->
             <TextBox.Resources>
@@ -581,13 +595,13 @@
       <!-- Conversa -->
       <DockPanel Margin="40,24,40,24">
         <!-- Caixa de pedido -->
-        <Border DockPanel.Dock="Bottom" Margin="0,14,0,0" Background="{StaticResource Folha}"
-                BorderBrush="{StaticResource Texto3}" BorderThickness="1.5" CornerRadius="14" Padding="14">
+        <Border DockPanel.Dock="Bottom" Margin="0,14,0,0" Background="{DynamicResource Folha}"
+                BorderBrush="{DynamicResource Texto3}" BorderThickness="1.5" CornerRadius="14" Padding="14">
           <StackPanel Spacing="12">
             <TextBox Name="PromptBox"
                      Text="{Binding PromptText}"
                      PlaceholderText="O que você quer fazer hoje? Ex.: crie uma página sobre minha loja de café"
-                     PlaceholderForeground="{StaticResource Texto3}"
+                     PlaceholderForeground="{DynamicResource Texto3}"
                      AcceptsReturn="True" TextWrapping="Wrap"
                      MinHeight="64" MaxHeight="220"
                      FontSize="16"
@@ -595,17 +609,12 @@
                      Background="Transparent" BorderThickness="0"
                      AutomationProperties.Name="Seu pedido"
                      AutomationProperties.HelpText="Enter envia. Shift mais Enter pula linha.">
-              <!-- O cartão em volta é a borda do campo (Texto3, 6,8:1). O tema clareava o texto de exemplo
-                   com opacidade; aqui ele fica sempre em Texto3, opaco. -->
+              <!-- O cartão em volta é a borda do campo (Texto3). O texto de exemplo opaco vem do App.axaml, por tema. -->
               <TextBox.Resources>
                 <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent"/>
                 <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent"/>
                 <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent"/>
                 <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent"/>
-                <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B5444"/>
-                <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B5444"/>
-                <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B5444"/>
-                <x:Double x:Key="TextControlPlaceholderOpacity">1</x:Double>
               </TextBox.Resources>
             </TextBox>
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
@@ -641,11 +650,11 @@
             <StackPanel Spacing="22" MaxWidth="820" HorizontalAlignment="Left" Margin="0,8,16,0">
               <StackPanel Spacing="6">
                 <TextBlock Text="Olá! Eu sou o Uirapuru." FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
-                <TextBlock FontSize="16" Foreground="{StaticResource Texto2}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
+                <TextBlock FontSize="16" Foreground="{DynamicResource Texto2}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
                            Text="Diga com suas palavras o que você precisa. Eu mostro cada passo enquanto trabalho e explico tudo no final."/>
               </StackPanel>
 
-              <TextBlock Text="Comece por uma ideia" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Texto2}"/>
+              <TextBlock Text="Comece por uma ideia" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Texto2}"/>
               <ItemsControl ItemsSource="{Binding Examples}">
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate>
@@ -658,7 +667,7 @@
                             AutomationProperties.Name="{Binding Title, StringFormat=Usar ideia: {0}}"
                             AutomationProperties.HelpText="{Binding Description}">
                       <StackPanel Spacing="2">
-                        <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="{StaticResource Texto}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" Foreground="{DynamicResource Texto}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding Description}" Classes="muted"/>
                       </StackPanel>
                     </Button>
@@ -690,9 +699,9 @@
                       <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="17"
                                  AutomationProperties.Name="{Binding Title}"
                                  AutomationProperties.LiveSetting="{Binding TitleLiveSetting}"/>
-                      <Border IsVisible="{Binding IsWorking}" Background="{StaticResource Nevoa}" CornerRadius="999" Padding="10,2"
+                      <Border IsVisible="{Binding IsWorking}" Background="{DynamicResource Nevoa}" CornerRadius="999" Padding="10,2"
                               VerticalAlignment="Center">
-                        <TextBlock Text="{Binding Elapsed}" FontSize="13" Foreground="{StaticResource Texto2}"
+                        <TextBlock Text="{Binding Elapsed}" FontSize="13" Foreground="{DynamicResource Texto2}"
                                    FontFamily="Cascadia Mono, Consolas, monospace"
                                    AutomationProperties.Name="{Binding Elapsed, StringFormat=Tempo trabalhando: {0}}"/>
                       </Border>
@@ -702,7 +711,7 @@
                                          LineHeight="25" IsVisible="{Binding HasText}"/>
 
                     <!-- Plano: ○ esperando · … fazendo · ✓ feito · ⚠ falhou -->
-                    <Border IsVisible="{Binding HasPlan}" Background="{StaticResource Nevoa}" CornerRadius="12" Padding="14,10">
+                    <Border IsVisible="{Binding HasPlan}" Background="{DynamicResource Nevoa}" CornerRadius="12" Padding="14,10">
                       <ItemsControl ItemsSource="{Binding Plan}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="m:ChatStep">
@@ -763,14 +772,14 @@
                             <TextBlock Text="{Binding Icon}" Classes="icone"
                                        Classes.feito="{Binding IsDone}" Classes.pendente="{Binding IsPending}" Classes.falhou="{Binding IsFailed}"/>
                             <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap"
-                                       Foreground="{StaticResource Texto2}" FontSize="15"/>
+                                       Foreground="{DynamicResource Texto2}" FontSize="15"/>
                           </Grid>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Border IsVisible="{Binding IsWorking}" BorderBrush="{StaticResource Acao}" BorderThickness="3,0,0,0" Padding="10,0,0,0">
-                      <TextBlock Text="{Binding CurrentActivity}" FontSize="14" Foreground="{StaticResource Texto2}" TextWrapping="Wrap"
+                    <Border IsVisible="{Binding IsWorking}" BorderBrush="{DynamicResource Acao}" BorderThickness="3,0,0,0" Padding="10,0,0,0">
+                      <TextBlock Text="{Binding CurrentActivity}" FontSize="14" Foreground="{DynamicResource Texto2}" TextWrapping="Wrap"
                                  AutomationProperties.Name="{Binding CurrentActivity}"
                                  AutomationProperties.LiveSetting="Polite"/>
                     </Border>
@@ -811,9 +820,9 @@
   </Grid>
 
   <!-- ================= Tela "Modelo de IA": ocupa o lugar do chat até a pessoa voltar (Esc também volta) ================= -->
-  <DockPanel IsVisible="{Binding IsModelPanelOpen}" Background="{StaticResource Nevoa}">
+  <DockPanel IsVisible="{Binding IsModelPanelOpen}" Background="{DynamicResource Nevoa}">
     <!-- Cabeçalho fixo: como voltar e o que está em uso agora -->
-    <Border DockPanel.Dock="Top" Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}"
+    <Border DockPanel.Dock="Top" Background="{DynamicResource Folha}" BorderBrush="{DynamicResource Linha}"
             BorderThickness="0,0,0,1" Padding="32,16">
       <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
         <Button Classes="secondary" Content="←  Voltar ao chat" Command="{Binding CloseModelPanelCommand}"
@@ -827,17 +836,17 @@
                 AutomationProperties.Name="{Binding ActiveProvider.Name, StringFormat='Em uso agora: {0}'}"
                 AutomationProperties.HelpText="{Binding ModelSummary}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-            <Border Width="40" Height="40" CornerRadius="10" Background="{StaticResource Selecao}">
+            <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource Selecao}">
               <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="18"
                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
-              <TextBlock Text="Em uso agora" FontSize="12" Foreground="{StaticResource Texto2}"/>
+              <TextBlock Text="Em uso agora" FontSize="12" Foreground="{DynamicResource Texto2}"/>
               <TextBlock Text="{Binding ActiveProvider.Name}" FontSize="15" FontWeight="Bold"
                          MaxWidth="240" TextTrimming="CharacterEllipsis"/>
               <TextBlock Text="{Binding ModelSummary}" FontSize="12.5" MaxWidth="240" TextTrimming="CharacterEllipsis"
                          ToolTip.Tip="{Binding ModelSummary}"
-                         FontFamily="Cascadia Mono, Consolas, monospace" Foreground="{StaticResource Texto2}"/>
+                         FontFamily="Cascadia Mono, Consolas, monospace" Foreground="{DynamicResource Texto2}"/>
             </StackPanel>
           </Grid>
         </Border>
@@ -845,7 +854,7 @@
     </Border>
 
     <!-- Rodapé fixo: a ação principal nunca some da vista -->
-    <Border DockPanel.Dock="Bottom" Background="{StaticResource Folha}" BorderBrush="{StaticResource Linha}"
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource Folha}" BorderBrush="{DynamicResource Linha}"
             BorderThickness="0,1,0,0" Padding="32,14">
       <Grid ColumnDefinitions="*,Auto" ColumnSpacing="20">
         <StackPanel VerticalAlignment="Center" Spacing="8">
@@ -853,7 +862,7 @@
                      AutomationProperties.LiveSetting="Polite"
                      AutomationProperties.Name="{Binding ProviderMessage}"/>
           <ProgressBar Height="6" IsIndeterminate="True" IsVisible="{Binding IsConnecting}" MaxWidth="420" HorizontalAlignment="Left"
-                       Foreground="{StaticResource Acao}" Background="{StaticResource Linha}"
+                       Foreground="{DynamicResource Acao}" Background="{DynamicResource Linha}"
                        AutomationProperties.Name="Conectando"/>
         </StackPanel>
         <Panel Grid.Column="1">
@@ -903,7 +912,7 @@
                         <TextBlock Text="{Binding Badge}" FontSize="11" FontWeight="Bold" LetterSpacing="0.5"/>
                       </Border>
                     </Grid>
-                    <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{StaticResource Texto2}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Description}" FontSize="13" Foreground="{DynamicResource Texto2}" TextWrapping="Wrap"/>
                   </StackPanel>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -931,9 +940,9 @@
                      VerticalContentAlignment="Center" IsEnabled="{Binding !IsConnecting}"
                      AutomationProperties.Name="Chave da API"
                      AutomationProperties.HelpText="{Binding KeyPlaceholder}"/>
-            <Border Background="{StaticResource AvisoSuave}" BorderBrush="{StaticResource AvisoBorda}"
+            <Border Background="{DynamicResource AvisoSuave}" BorderBrush="{DynamicResource AvisoBorda}"
                     BorderThickness="1" CornerRadius="10" Padding="14,10">
-              <TextBlock Text="{Binding PickedPrivacy}" FontSize="14" TextWrapping="Wrap" Foreground="{StaticResource Texto}"/>
+              <TextBlock Text="{Binding PickedPrivacy}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource Texto}"/>
             </Border>
             <TextBlock Classes="muted" FontSize="13"
                        Text="🔐  A chave fica guardada criptografada neste computador, só para o seu usuário do Windows."/>

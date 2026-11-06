@@ -19,6 +19,12 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         AiSettings.Load(); // antes do agente: ele herda o provedor escolhido pelas variáveis de ambiente
+        RequestedThemeVariant = AiSettings.Theme switch
+        {
+            "Dark" => Avalonia.Styling.ThemeVariant.Dark,
+            "Light" => Avalonia.Styling.ThemeVariant.Light,
+            _ => Avalonia.Styling.ThemeVariant.Default, // segue o Windows
+        };
         _host = new AgentHost();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

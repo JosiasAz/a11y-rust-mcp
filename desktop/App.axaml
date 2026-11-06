@@ -1,7 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="A11yAgent.Desktop.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Default">
   <!--
     Paleta Uirapuru · Encontro das Águas (Manaus): barra lateral Rio Negro, área de trabalho Solimões,
     ferrugem do uirapuru nas ações e dourado nos detalhes da barra.
@@ -14,31 +14,81 @@
       Concluído  #1F6B4F sobre Solimões = 5,2:1 · Açaí #8E1B3A sobre Solimões = 7,2:1
       Foco       #135E7A sobre Solimões = 5,8:1 (área clara) · #F5C9A6 sobre Rio Negro = 11,6:1 (barra)
   -->
+  <!--
+    Modo escuro "Rio Negro à noite": fundo #1E1712, superfície #2A211A.
+    Contrastes medidos (WCAG 2.2):
+      Texto #F3E9DC sobre #1E1712 = 14,7:1 · sobre #2A211A = 13,1:1 · sobre seleção #4A2E1E = 10,3:1
+      Texto 2 #D9C8B4 sobre #1E1712 = 10,8:1 · Texto 3 #B8A38D sobre #1E1712 = 7,3:1 · sobre #2A211A = 6,5:1
+      Ação branco sobre #A8460F = 5,9:1 · texto ferrugem #F0A070 sobre #1E1712 = 8,4:1 · sobre #4A2E1E = 5,9:1
+      Concluído #7FD3A8 sobre #1E1712 = 9,9:1 · Açaí #F29AB3 sobre #1E1712 = 8,5:1 · Aviso #F2C55C sobre #3A2E12 = 8,2:1
+      Foco #8FD0EC sobre #1E1712 = 10,5:1
+    A barra lateral continua Rio Negro nos dois temas (um tom mais fundo no escuro).
+  -->
   <Application.Resources>
-    <SolidColorBrush x:Key="Mata" Color="#21170F"/>
-    <SolidColorBrush x:Key="MataSel" Color="#33251A"/>
-    <SolidColorBrush x:Key="MataTexto" Color="#F3E9DC"/>
-    <SolidColorBrush x:Key="MataTexto2" Color="#CDBBA6"/>
-    <SolidColorBrush x:Key="Garganta" Color="#E9B872"/>
-    <SolidColorBrush x:Key="GargantaHover" Color="#F2CC8F"/>
-    <SolidColorBrush x:Key="Nevoa" Color="#EFE6D8"/>
-    <SolidColorBrush x:Key="Folha" Color="#FFFBF5"/>
-    <SolidColorBrush x:Key="Linha" Color="#DCCDB8"/>
-    <SolidColorBrush x:Key="Selecao" Color="#F6E2D2"/>
-    <SolidColorBrush x:Key="Texto" Color="#2B1D14"/>
-    <SolidColorBrush x:Key="Texto2" Color="#4E3B2E"/>
-    <SolidColorBrush x:Key="Texto3" Color="#6B5444"/>
-    <SolidColorBrush x:Key="Acao" Color="#8A3B12"/>
-    <SolidColorBrush x:Key="AcaoHover" Color="#6E2E0D"/>
-    <SolidColorBrush x:Key="FolhaNova" Color="#1F6B4F"/>
-    <SolidColorBrush x:Key="Acai" Color="#8E1B3A"/>
-    <SolidColorBrush x:Key="AcaiSuave" Color="#F6E3EA"/>
-    <SolidColorBrush x:Key="AcaiBorda" Color="#DDB0C0"/>
-    <SolidColorBrush x:Key="Aviso" Color="#7A5200"/>
-    <SolidColorBrush x:Key="AvisoSuave" Color="#FBF0D2"/>
-    <SolidColorBrush x:Key="AvisoBorda" Color="#E2C27A"/>
-    <SolidColorBrush x:Key="FocoAnel" Color="#135E7A"/>
-    <SolidColorBrush x:Key="FocoAnelEscuro" Color="#F5C9A6"/>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="Mata" Color="#21170F"/>
+          <SolidColorBrush x:Key="MataSel" Color="#33251A"/>
+          <SolidColorBrush x:Key="Nevoa" Color="#EFE6D8"/>
+          <SolidColorBrush x:Key="Folha" Color="#FFFBF5"/>
+          <SolidColorBrush x:Key="Linha" Color="#DCCDB8"/>
+          <SolidColorBrush x:Key="Selecao" Color="#F6E2D2"/>
+          <SolidColorBrush x:Key="Texto" Color="#2B1D14"/>
+          <SolidColorBrush x:Key="Texto2" Color="#4E3B2E"/>
+          <SolidColorBrush x:Key="Texto3" Color="#6B5444"/>
+          <SolidColorBrush x:Key="Acao" Color="#8A3B12"/>
+          <SolidColorBrush x:Key="AcaoHover" Color="#6E2E0D"/>
+          <SolidColorBrush x:Key="AcaoTexto" Color="#8A3B12"/>
+          <SolidColorBrush x:Key="FolhaNova" Color="#1F6B4F"/>
+          <SolidColorBrush x:Key="FolhaNovaSuave" Color="#E3F0E9"/>
+          <SolidColorBrush x:Key="Acai" Color="#8E1B3A"/>
+          <SolidColorBrush x:Key="AcaiSuave" Color="#F6E3EA"/>
+          <SolidColorBrush x:Key="AcaiBorda" Color="#DDB0C0"/>
+          <SolidColorBrush x:Key="Aviso" Color="#7A5200"/>
+          <SolidColorBrush x:Key="AvisoSuave" Color="#FBF0D2"/>
+          <SolidColorBrush x:Key="AvisoBorda" Color="#E2C27A"/>
+          <SolidColorBrush x:Key="FocoAnel" Color="#135E7A"/>
+          <!-- Texto de exemplo das caixas de texto: opaco, em Texto3 (o tema Fluent clareava com opacidade) -->
+          <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B5444"/>
+          <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B5444"/>
+          <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B5444"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="Mata" Color="#140E09"/>
+          <SolidColorBrush x:Key="MataSel" Color="#2A1E15"/>
+          <SolidColorBrush x:Key="Nevoa" Color="#1E1712"/>
+          <SolidColorBrush x:Key="Folha" Color="#2A211A"/>
+          <SolidColorBrush x:Key="Linha" Color="#4A3B2F"/>
+          <SolidColorBrush x:Key="Selecao" Color="#4A2E1E"/>
+          <SolidColorBrush x:Key="Texto" Color="#F3E9DC"/>
+          <SolidColorBrush x:Key="Texto2" Color="#D9C8B4"/>
+          <SolidColorBrush x:Key="Texto3" Color="#B8A38D"/>
+          <SolidColorBrush x:Key="Acao" Color="#A8460F"/>
+          <SolidColorBrush x:Key="AcaoHover" Color="#8A3B12"/>
+          <SolidColorBrush x:Key="AcaoTexto" Color="#F0A070"/>
+          <SolidColorBrush x:Key="FolhaNova" Color="#7FD3A8"/>
+          <SolidColorBrush x:Key="FolhaNovaSuave" Color="#1D3A2D"/>
+          <SolidColorBrush x:Key="Acai" Color="#F29AB3"/>
+          <SolidColorBrush x:Key="AcaiSuave" Color="#3A1C25"/>
+          <SolidColorBrush x:Key="AcaiBorda" Color="#6E3346"/>
+          <SolidColorBrush x:Key="Aviso" Color="#F2C55C"/>
+          <SolidColorBrush x:Key="AvisoSuave" Color="#3A2E12"/>
+          <SolidColorBrush x:Key="AvisoBorda" Color="#7A6224"/>
+          <SolidColorBrush x:Key="FocoAnel" Color="#8FD0EC"/>
+          <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#B8A38D"/>
+          <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#B8A38D"/>
+          <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#B8A38D"/>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <!-- Iguais nos dois temas: texto e dourado da barra lateral, que é sempre escura -->
+      <SolidColorBrush x:Key="MataTexto" Color="#F3E9DC"/>
+      <SolidColorBrush x:Key="MataTexto2" Color="#CDBBA6"/>
+      <SolidColorBrush x:Key="Garganta" Color="#E9B872"/>
+      <SolidColorBrush x:Key="GargantaHover" Color="#F2CC8F"/>
+      <SolidColorBrush x:Key="FocoAnelEscuro" Color="#F5C9A6"/>
+      <x:Double x:Key="TextControlPlaceholderOpacity">1</x:Double>
+    </ResourceDictionary>
   </Application.Resources>
 
   <Application.Styles>
@@ -59,8 +109,8 @@
     <Style Selector="Button, ToggleButton, ListBoxItem, Expander, TextBox, ComboBox, CheckBox, RadioButton">
       <Setter Property="FocusAdorner">
         <FocusAdornerTemplate>
-          <Border BorderBrush="{StaticResource FocoAnel}" BorderThickness="3" CornerRadius="14" Margin="-5">
-            <Border BorderBrush="{StaticResource Nevoa}" BorderThickness="2" CornerRadius="11"/>
+          <Border BorderBrush="{DynamicResource FocoAnel}" BorderThickness="3" CornerRadius="14" Margin="-5">
+            <Border BorderBrush="{DynamicResource Nevoa}" BorderThickness="2" CornerRadius="11"/>
           </Border>
         </FocusAdornerTemplate>
       </Setter>
@@ -69,8 +119,8 @@
     <Style Selector="Border.lateral Button, Border.lateral ListBoxItem, Border.lateral ComboBox">
       <Setter Property="FocusAdorner">
         <FocusAdornerTemplate>
-          <Border BorderBrush="{StaticResource FocoAnelEscuro}" BorderThickness="3" CornerRadius="14" Margin="-5">
-            <Border BorderBrush="{StaticResource Mata}" BorderThickness="2" CornerRadius="11"/>
+          <Border BorderBrush="{DynamicResource FocoAnelEscuro}" BorderThickness="3" CornerRadius="14" Margin="-5">
+            <Border BorderBrush="{DynamicResource Mata}" BorderThickness="2" CornerRadius="11"/>
           </Border>
         </FocusAdornerTemplate>
       </Setter>

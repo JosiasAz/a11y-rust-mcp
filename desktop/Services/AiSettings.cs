@@ -44,6 +44,16 @@ public static class AiSettings
         public string? Model { get; set; }
         /// Chave criptografada (DPAPI, base64) por provedor.
         public Dictionary<string, string> Keys { get; set; } = [];
+        /// "Light", "Dark" ou nulo (segue o Windows).
+        public string? Theme { get; set; }
+    }
+
+    public static string? Theme => _data.Theme;
+
+    public static void SaveTheme(string theme)
+    {
+        _data.Theme = theme;
+        Save();
     }
 
     private static Data _data = new();

@@ -184,6 +184,13 @@ public partial class MainViewModel : ViewModelBase
             OnPropertyChanged(nameof(ShowModelPicker));
         };
         FilteredModels.CollectionChanged += (_, _) => OnPropertyChanged(nameof(ModelCountText));
+        // Também acompanha o tema do Windows quando a pessoa ainda não escolheu um.
+        if (Avalonia.Application.Current is { } app)
+            app.ActualThemeVariantChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(IsDark));
+                OnPropertyChanged(nameof(ThemeToggleText));
+            };
         _clock.Tick += (_, _) =>
         {
             if (_clockTarget is null) return;
@@ -330,6 +337,20 @@ public partial class MainViewModel : ViewModelBase
         if (IsConnecting) return; // trocar no meio da conexão deixaria o agente pela metade
         ApiKeyInput = "";
         IsModelPanelOpen = false;
+    }
+
+    // ───── Tema claro/escuro ─────
+
+    public bool IsDark => Avalonia.Application.Current?.ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+    public string ThemeToggleText => IsDark ? "Usar tema claro" : "Usar tema escuro";
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        if (Avalonia.Application.Current is not { } app) return;
+        var dark = !IsDark;
+        app.RequestedThemeVariant = dark ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
+        AiSettings.SaveTheme(dark ? "Dark" : "Light");
     }
 
     [RelayCommand]
