@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/vers%C3%A3o-0.1.0-8A3B12" alt="Versão 0.1.0">
+  <img src="https://img.shields.io/badge/vers%C3%A3o-0.2.0-8A3B12" alt="Versão 0.2.0">
   <img src="https://img.shields.io/badge/Rust-1.89%2B-21170F?logo=rust&logoColor=white" alt="Rust 1.89 ou mais novo">
   <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET 10">
   <img src="https://img.shields.io/badge/Avalonia-12-8B44AC" alt="Avalonia 12">

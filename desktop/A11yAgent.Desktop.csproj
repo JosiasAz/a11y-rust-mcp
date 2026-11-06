@@ -12,7 +12,7 @@
     <Company>Josias Azevedo da Silva</Company>
     <Copyright>© 2026 Josias Azevedo da Silva</Copyright>
     <!-- Versão única do produto: o script de empacotamento lê daqui para o instalador. -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <ApplicationIcon>Assets\uirapuru.ico</ApplicationIcon>
   </PropertyGroup>
 
