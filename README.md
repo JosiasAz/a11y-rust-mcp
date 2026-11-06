@@ -239,6 +239,8 @@ Depois de instalar, o executável fica em `%LOCALAPPDATA%\Programs\Uirapuru\agen
 claude mcp add uirapuru --env A11Y_WORKSPACE="C:\caminho\da\pasta" --env LLM_MODEL=qwen2.5:7b -- "$env:LOCALAPPDATA\Programs\Uirapuru\agent\rust-a11y-agent.exe" mcp-server
 ```
 
+**Skill (opcional):** o arquivo [`skills/uirapuru/SKILL.md`](skills/uirapuru/SKILL.md) ensina o agente a usar as ferramentas na ordem certa: simplificar, perguntar o que a pessoa entendeu e conferir. No Claude Code, copie a pasta `skills/uirapuru` para `~/.claude/skills/`.
+
 **Por HTTP** (clientes que se conectam por URL): rode `rust-a11y-agent.exe mcp-http --bind 127.0.0.1:8000`. Ao iniciar, ele imprime `A11Y_API_TOKEN=<token>`; configure o cliente com a URL `http://127.0.0.1:8000/mcp` e o header `Authorization: Bearer <token>`. O token muda a cada início.
 
 | Ferramenta | O que faz |
