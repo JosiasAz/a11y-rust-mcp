@@ -195,7 +195,8 @@ pub async fn plan_and_solve(
     };
 
     let mcp_session = if opts.via_mcp {
-        Some(McpToolSession::spawn_self().await.context(
+        let ws_root = opts.workspace.as_ref().map(|w| w.root());
+        Some(McpToolSession::spawn_self(ws_root).await.context(
             "falha ao iniciar sessão MCP (child process). Use --local-tools / auto_approve local.",
         )?)
     } else {

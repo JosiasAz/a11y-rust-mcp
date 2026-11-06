@@ -260,7 +260,7 @@ Todas as ferramentas ficam presas à pasta `A11Y_WORKSPACE`. Se ela não for def
 Este projeto quer servir de referência em acessibilidade, então os limites ficam à vista:
 
 - **No app, o agente não roda comandos no terminal.** Ele cria e edita arquivos, e a explicação final diz como abrir o resultado. Nos modos `chat` e MCP o `run_terminal` continua disponível. Por padrão ele roda no shell local (`A11Y_SANDBOX=host`), que **não isola nada** além da pasta inicial e do tempo-limite. Com `A11Y_SANDBOX=docker` o comando roda num container sem rede que só enxerga a pasta.
-- **O `mcp-http` usa HTTP sem TLS.** O token protege contra quem não o conhece, mas na rede local ele passa em texto aberto. Prefira `127.0.0.1`.
+- **O `mcp-http` usa HTTP sem TLS.** O token protege contra quem não o conhece, mas na rede local ele passa em texto aberto. Por isso ele só aceita `127.0.0.1` ou `::1`; para escutar na rede (ex.: `--bind 0.0.0.0:8000`) é preciso passar `--allow-remote`, sabendo que qualquer um com o token pode criar, apagar arquivos e rodar comandos na pasta.
 - **Ainda não houve teste com NVDA, Narrador nem com pessoas usuárias.** Tudo acima é intenção de projeto, não resultado medido. A única exceção são os contrastes, que foram medidos: texto principal 13,2:1, texto de apoio 8,5:1 e 5,7:1, botão de ação 7,7:1 e anel de foco 5,8:1 (os valores estão comentados em `desktop/App.axaml`).
 - **Modelos pequenos erram e usam jargão**, como o "diretório raiz" da conversa lá em cima.
 

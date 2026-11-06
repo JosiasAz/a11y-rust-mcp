@@ -1,6 +1,6 @@
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Component, Path};
 use std::time::Duration;
 
 use regex::Regex;
@@ -276,30 +276,64 @@ fn delete_path(ws: &Workspace, args: &DeletePathArgs) -> Result<String, String> 
     Ok(format!("Removido: {}", ws.rel_display(&path)))
 }
 
+const MAX_GLOB_RESULTS: usize = 200;
+
+/// Percorre só o workspace e compara o caminho relativo com o padrão.
+///
+/// Antes o padrão era colado na raiz e passado a `glob::glob`, o que tinha três problemas:
+/// padrões absolutos ou com `..` varriam o disco fora da pasta; uma única pasta sem
+/// permissão abortava a busca inteira; e no Windows a raiz canônica `\\?\C:\...` virava
+/// `//?/C:/...`, em que o `?` é curinga.
 fn glob_files(ws: &Workspace, args: &GlobArgs) -> Result<String, String> {
-    let pattern = if Path::new(&args.pattern).is_absolute() {
-        args.pattern.clone()
-    } else {
-        ws.root()
-            .join(&args.pattern)
-            .to_string_lossy()
-            .replace('\\', "/")
+    let normalized = args.pattern.trim().replace('\\', "/");
+    let raw = normalized.trim_start_matches("./");
+    if raw.is_empty() {
+        return Err("padrão glob vazio".into());
+    }
+    let escapes = Path::new(raw).components().any(|c| {
+        matches!(
+            c,
+            Component::ParentDir | Component::RootDir | Component::Prefix(_)
+        )
+    });
+    if escapes {
+        return Err(format!(
+            "padrão fora da pasta: use um caminho relativo à pasta, sem '..' (ex: **/*.rs). Recebido: {}",
+            args.pattern
+        ));
+    }
+    let pattern = glob::Pattern::new(raw).map_err(|e| format!("padrão glob inválido: {e}"))?;
+    let opts = glob::MatchOptions {
+        case_sensitive: !cfg!(windows),
+        require_literal_separator: true,
+        require_literal_leading_dot: false,
     };
+
     let mut matches = Vec::new();
-    for entry in glob::glob(&pattern).map_err(|e| e.to_string())? {
-        let p = entry.map_err(|e| e.to_string())?;
-        if let Ok(resolved) = ws.resolve(&p.to_string_lossy()) {
-            matches.push(ws.rel_display(&resolved));
+    let mut truncated = false;
+    // WalkDir não segue symlinks por padrão; entradas ilegíveis são puladas, não abortam a busca.
+    for entry in WalkDir::new(ws.root())
+        .min_depth(1)
+        .into_iter()
+        .filter_map(|e| e.ok())
+    {
+        let rel = ws.rel_display(entry.path());
+        if pattern.matches_with(&rel, opts) {
+            if matches.len() >= MAX_GLOB_RESULTS {
+                truncated = true;
+                break;
+            }
+            matches.push(rel);
         }
-        if matches.len() >= 200 {
-            matches.push("… (truncado em 200)".into());
-            break;
-        }
+    }
+    let count = matches.len();
+    if truncated {
+        matches.push(format!("… (truncado em {MAX_GLOB_RESULTS})"));
     }
     Ok(format!(
         "Glob '{}' → {} arquivo(s):\n{}",
         args.pattern,
-        matches.len(),
+        count,
         matches.join("\n")
     ))
 }
@@ -454,6 +488,42 @@ mod tests {
         };
         assert!(str_replace(&ws, &args).is_err());
         assert_eq!(fs::read_to_string(dir.join("app.py")).unwrap(), "print('oi')");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    fn run_glob(ws: &Workspace, pattern: &str) -> Result<String, String> {
+        glob_files(ws, &GlobArgs { pattern: pattern.into() })
+    }
+
+    #[test]
+    fn glob_finds_files_inside_workspace() {
+        let dir = std::env::temp_dir().join(format!("a11y-glob-ok-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("src/agent")).unwrap();
+        fs::write(dir.join("main.rs"), "").unwrap();
+        fs::write(dir.join("src/agent/mod.rs"), "").unwrap();
+        fs::write(dir.join("src/notas.txt"), "").unwrap();
+        let ws = Workspace::new(&dir).unwrap();
+
+        let all = run_glob(&ws, "**/*.rs").unwrap();
+        assert!(all.contains("main.rs") && all.contains("src/agent/mod.rs"), "{all}");
+        assert!(!all.contains("notas.txt"), "{all}");
+
+        let top = run_glob(&ws, "*.rs").unwrap();
+        assert!(top.contains("main.rs") && !top.contains("src/agent/mod.rs"), "{top}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn glob_rejects_patterns_outside_workspace() {
+        let dir = std::env::temp_dir().join(format!("a11y-glob-out-{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let ws = Workspace::new(&dir).unwrap();
+        for bad in ["../*", "src/../../*", "/etc/*", "", "   "] {
+            assert!(run_glob(&ws, bad).is_err(), "deveria recusar {bad:?}");
+        }
+        #[cfg(windows)]
+        assert!(run_glob(&ws, "C:/Windows/*").is_err());
         let _ = fs::remove_dir_all(&dir);
     }
 }

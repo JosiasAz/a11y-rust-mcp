@@ -186,14 +186,15 @@ async fn agent_run(
     Json(req): Json<RunRequest>,
 ) -> Result<Json<RunResponse>, (axum::http::StatusCode, String)> {
     let ws = Workspace::new(&req.workspace).map_err(map_err)?;
-    let model = state.llm.model_name().to_string();
+    let llm = llm_for(&state, &req.model);
+    let model = llm.model_name().to_string();
 
     let result = if req.fast_mode {
-        run_desktop_agent(&req.task, &req.steps, state.llm.as_ref(), ws.clone(), None).await
+        run_desktop_agent(&req.task, &req.steps, llm.as_ref(), ws.clone(), None).await
     } else {
         plan_and_solve(
             &req.task,
-            state.llm.as_ref(),
+            llm.as_ref(),
             AgentRunOptions {
                 via_mcp: false,
                 auto_approve: req.auto_approve,
@@ -317,7 +318,7 @@ async fn workspace_tree(
 ) -> Result<Json<TreeResponse>, (axum::http::StatusCode, String)> {
     let ws = Workspace::new(&q.workspace).map_err(map_err)?;
     let mut entries = Vec::new();
-    collect_tree(ws.root(), ws.root(), q.depth, 0, &mut entries);
+    collect_tree(ws.root(), ws.root(), q.depth.min(MAX_TREE_DEPTH), 0, &mut entries);
     Ok(Json(TreeResponse {
         root: ws.root().display().to_string(),
         entries,
@@ -361,6 +362,11 @@ async fn write_file(
     }))
 }
 
+/// Teto da profundidade pedida na query (o desktop usa 3).
+const MAX_TREE_DEPTH: usize = 8;
+/// Teto de itens da árvore, para uma pasta enorme não travar a API nem a tela.
+const MAX_TREE_ENTRIES: usize = 5000;
+
 fn collect_tree(
     root: &std::path::Path,
     current: &std::path::Path,
@@ -368,7 +374,7 @@ fn collect_tree(
     depth: usize,
     out: &mut Vec<String>,
 ) {
-    if depth > max_depth {
+    if depth > max_depth || out.len() >= MAX_TREE_ENTRIES {
         return;
     }
     let Ok(rd) = std::fs::read_dir(current) else {
@@ -377,6 +383,9 @@ fn collect_tree(
     let mut items: Vec<_> = rd.filter_map(|e| e.ok()).collect();
     items.sort_by_key(|e| e.file_name());
     for entry in items {
+        if out.len() >= MAX_TREE_ENTRIES {
+            return;
+        }
         let path = entry.path();
         let name = path
             .strip_prefix(root)
@@ -384,7 +393,10 @@ fn collect_tree(
             .unwrap_or_else(|_| path.to_string_lossy().into_owned());
         let marker = if path.is_dir() { "📁" } else { "📄" };
         out.push(format!("{marker} {name}"));
-        if path.is_dir() {
+        // `DirEntry::file_type` não segue symlinks/junctions: um atalho para fora do
+        // workspace aparece pelo nome, mas o conteúdo dele não é listado.
+        let is_real_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
+        if is_real_dir {
             let skip = path
                 .file_name()
                 .and_then(|n| n.to_str())
@@ -399,4 +411,27 @@ fn collect_tree(
 
 fn map_err(e: impl ToString) -> (axum::http::StatusCode, String) {
     (axum::http::StatusCode::BAD_REQUEST, e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn tree_does_not_follow_symlink_out_of_workspace() {
+        let base = std::env::temp_dir().join(format!("a11y-tree-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("root")).unwrap();
+        std::fs::create_dir_all(base.join("segredo")).unwrap();
+        std::fs::write(base.join("segredo/senha.txt"), "x").unwrap();
+        std::os::unix::fs::symlink(base.join("segredo"), base.join("root/atalho")).unwrap();
+
+        let root = base.join("root").canonicalize().unwrap();
+        let mut entries = Vec::new();
+        collect_tree(&root, &root, 3, 0, &mut entries);
+        assert!(entries.iter().any(|e| e.ends_with("atalho")), "{entries:?}");
+        assert!(!entries.iter().any(|e| e.contains("senha.txt")), "{entries:?}");
+        let _ = std::fs::remove_dir_all(&base);
+    }
 }
