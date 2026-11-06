@@ -109,8 +109,8 @@ public partial class MainViewModel : ViewModelBase
     public string PickedPrivacy =>
         $"O que você escrever será enviado para os servidores de {PickedProvider.Name}. Use só com textos que você pode compartilhar.";
     public string PrivacyText => ActiveProvider.IsLocal
-        ? "🔒  Tudo roda no seu computador. Nada do que você escreve sai daqui."
-        : $"🌐  Você está usando {ActiveProvider.Name}. O que você escreve é enviado pela internet para esse serviço.";
+        ? "Tudo roda no seu computador. Nada do que você escreve sai daqui."
+        : $"Você está usando {ActiveProvider.Name}. O que você escreve é enviado pela internet para esse serviço.";
     public string ModelSummary => string.IsNullOrWhiteSpace(SelectedModel) ? "Modelo padrão" : SelectedModel;
     public string ModelCountText => FilteredModels.Count switch
     {

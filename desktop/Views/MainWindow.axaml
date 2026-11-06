@@ -351,10 +351,14 @@
 
       <!-- Onde estou e como está: pasta aberta + estado do agente -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" Margin="32,0,0,0" VerticalAlignment="Center">
-        <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
-                   Foreground="{DynamicResource MataTexto}" FontWeight="Bold"
-                   Text="{Binding WorkspaceName, StringFormat=📁  {0}}" IsVisible="{Binding HasWorkspace}"
-                   AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
+        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasWorkspace}" IsHitTestVisible="False">
+          <Path Data="M1.5,3.5 H6.5 L8,5 H14.5 V13.5 H1.5 Z" Stroke="{DynamicResource Garganta}" StrokeThickness="1.4"
+                StrokeJoin="Round" Width="16" Height="16" VerticalAlignment="Center"/>
+          <TextBlock FontSize="14" VerticalAlignment="Center"
+                     Foreground="{DynamicResource MataTexto}" FontWeight="Bold"
+                     Text="{Binding WorkspaceName}"
+                     AutomationProperties.Name="{Binding WorkspacePath, StringFormat=Pasta aberta: {0}}"/>
+        </StackPanel>
         <TextBlock FontSize="14" VerticalAlignment="Center" IsHitTestVisible="False"
                    Foreground="{DynamicResource MataTexto2}" Text="Nenhuma pasta aberta" IsVisible="{Binding !HasWorkspace}"/>
         <Border Background="{DynamicResource MataSel}" CornerRadius="999" Padding="10,3" VerticalAlignment="Center"
@@ -438,7 +442,7 @@
                     AutomationProperties.HelpText="{Binding ModelSummary}">
               <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <Border Width="36" Height="36" CornerRadius="10" Background="{DynamicResource Mata}">
-                  <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                  <Path Data="{Binding ActiveProvider.Logo}" Fill="{DynamicResource MataTexto}" Stretch="Uniform" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
                   <TextBlock Text="{Binding ActiveProvider.Name}" FontWeight="Bold" FontSize="15"
@@ -619,7 +623,7 @@
             </TextBox>
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
               <Panel VerticalAlignment="Center">
-                <Button Classes="secondary" Content="📁  Escolher pasta" HorizontalAlignment="Left"
+                <Button Classes="secondary" Content="Escolher pasta" HorizontalAlignment="Left"
                         Command="{Binding PickWorkspaceCommand}" IsVisible="{Binding !HasWorkspace}"
                         AutomationProperties.Name="Escolher pasta"
                         AutomationProperties.HelpText="Escolhe a pasta onde o assistente pode trabalhar. Atalho Ctrl O."/>
@@ -675,7 +679,11 @@
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
 
-              <TextBlock Classes="muted" Text="{Binding PrivacyText}"/>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Data="{Binding ActiveProvider.Logo}" Fill="{DynamicResource Texto3}" Stretch="Uniform"
+                      Width="14" Height="14" VerticalAlignment="Center"/>
+                <TextBlock Classes="muted" Text="{Binding PrivacyText}"/>
+              </StackPanel>
             </StackPanel>
           </ScrollViewer>
 
@@ -837,8 +845,7 @@
                 AutomationProperties.HelpText="{Binding ModelSummary}">
           <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
             <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource Selecao}">
-              <TextBlock Text="{Binding ActiveProvider.Icon}" FontSize="18"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <Path Data="{Binding ActiveProvider.Logo}" Fill="{DynamicResource Texto}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
               <TextBlock Text="Em uso agora" FontSize="12" Foreground="{DynamicResource Texto2}"/>
@@ -905,7 +912,7 @@
                 <DataTemplate x:DataType="svc:AiProvider">
                   <StackPanel Spacing="6">
                     <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                      <TextBlock Text="{Binding Icon}" FontSize="16" VerticalAlignment="Center"/>
+                      <Path Data="{Binding Logo}" Fill="{DynamicResource Texto}" Stretch="Uniform" Width="18" Height="18" VerticalAlignment="Center"/>
                       <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Bold" FontSize="15"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}"/>
                       <Border Grid.Column="2" Classes="etiqueta" Classes.local="{Binding IsLocal}" VerticalAlignment="Center">
@@ -945,7 +952,7 @@
               <TextBlock Text="{Binding PickedPrivacy}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource Texto}"/>
             </Border>
             <TextBlock Classes="muted" FontSize="13"
-                       Text="🔐  A chave fica guardada criptografada neste computador, só para o seu usuário do Windows."/>
+                       Text="A chave fica guardada criptografada neste computador, só para o seu usuário do Windows."/>
           </StackPanel>
         </Border>
 
@@ -960,7 +967,7 @@
               </StackPanel>
             </StackPanel>
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-              <TextBox Text="{Binding ModelFilter}" PlaceholderText="🔍  Procurar modelo pelo nome"
+              <TextBox Text="{Binding ModelFilter}" PlaceholderText="Procurar modelo pelo nome"
                        FontSize="15" MinHeight="48" VerticalContentAlignment="Center"
                        AutomationProperties.Name="Procurar modelo pelo nome"/>
               <Button Grid.Column="1" Classes="secondary" Content="⟳  Atualizar"

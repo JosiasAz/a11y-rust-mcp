@@ -7,10 +7,13 @@ namespace A11yAgent.Desktop.Services;
 #pragma warning disable CA1416 // DPAPI é só do Windows, e o app só é distribuído para Windows (instalador Inno Setup)
 
 /// <summary>Um provedor de IA. O Id é o mesmo LLM_PROVIDER que o agente Rust entende.</summary>
-public sealed record AiProvider(string Id, string Name, string Description, string? KeyUrl)
+public sealed record AiProvider(string Id, string Name, string Description, string? KeyUrl, string LogoData)
 {
+    private Avalonia.Media.Geometry? _logo;
+
+    /// Logo oficial (ProviderLogos), lido uma vez só.
+    public Avalonia.Media.Geometry Logo => _logo ??= Avalonia.Media.StreamGeometry.Parse(LogoData);
     public bool IsLocal => KeyUrl is null;
-    public string Icon => IsLocal ? "🔒" : "🌐";
     public string Badge => IsLocal ? "LOCAL" : "NUVEM";
     public string Tag => IsLocal ? "No seu computador · grátis" : "Na internet · precisa de chave";
 }
@@ -24,15 +27,15 @@ public static class AiSettings
 {
     public static IReadOnlyList<AiProvider> Providers { get; } =
     [
-        new("ollama", "Ollama", "Roda no seu computador. Nada do que você escreve sai daqui.", null),
-        new("anthropic", "Claude (Anthropic)", "Ótimo para explicar e escrever com clareza.", "https://console.anthropic.com/settings/keys"),
-        new("openai", "OpenAI (ChatGPT)", "Modelos GPT da OpenAI.", "https://platform.openai.com/api-keys"),
-        new("nvidia", "NVIDIA", "Modelos abertos (Nemotron, Llama, Qwen) na nuvem da NVIDIA.", "https://build.nvidia.com/settings/api-keys"),
-        new("gemini", "Google Gemini", "Modelos Gemini do Google.", "https://aistudio.google.com/apikey"),
-        new("groq", "Groq", "Respostas muito rápidas com modelos abertos.", "https://console.groq.com/keys"),
-        new("openrouter", "OpenRouter", "Uma chave só para centenas de modelos.", "https://openrouter.ai/keys"),
-        new("deepseek", "DeepSeek", "Modelos DeepSeek.", "https://platform.deepseek.com/api_keys"),
-        new("mistral", "Mistral", "Modelos da Mistral AI.", "https://console.mistral.ai/api-keys"),
+        new("ollama", "Ollama", "Roda no seu computador. Nada do que você escreve sai daqui.", null, ProviderLogos.Ollama),
+        new("anthropic", "Claude (Anthropic)", "Ótimo para explicar e escrever com clareza.", "https://console.anthropic.com/settings/keys", ProviderLogos.Claude),
+        new("openai", "OpenAI (ChatGPT)", "Modelos GPT da OpenAI.", "https://platform.openai.com/api-keys", ProviderLogos.OpenAI),
+        new("nvidia", "NVIDIA", "Modelos abertos (Nemotron, Llama, Qwen) na nuvem da NVIDIA.", "https://build.nvidia.com/settings/api-keys", ProviderLogos.Nvidia),
+        new("gemini", "Google Gemini", "Modelos Gemini do Google.", "https://aistudio.google.com/apikey", ProviderLogos.Gemini),
+        new("groq", "Groq", "Respostas muito rápidas com modelos abertos.", "https://console.groq.com/keys", ProviderLogos.Groq),
+        new("openrouter", "OpenRouter", "Uma chave só para centenas de modelos.", "https://openrouter.ai/keys", ProviderLogos.OpenRouter),
+        new("deepseek", "DeepSeek", "Modelos DeepSeek.", "https://platform.deepseek.com/api_keys", ProviderLogos.DeepSeek),
+        new("mistral", "Mistral", "Modelos da Mistral AI.", "https://console.mistral.ai/api-keys", ProviderLogos.Mistral),
     ];
 
     private static readonly string FilePath = Path.Combine(
