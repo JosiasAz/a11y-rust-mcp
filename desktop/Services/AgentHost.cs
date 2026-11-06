@@ -57,7 +57,9 @@ public sealed class AgentHost : IDisposable
                 RedirectStandardError = true,
             };
             psi.Environment["LLM_PROVIDER"] = Environment.GetEnvironmentVariable("LLM_PROVIDER") ?? "ollama";
-            psi.Environment["LLM_MODEL"] = Environment.GetEnvironmentVariable("LLM_MODEL") ?? "qwen2.5:7b";
+            // Fora do Ollama, sem LLM_MODEL o agente usa o modelo padrão do provedor.
+            if (OllamaService.IsOllamaProvider || Environment.GetEnvironmentVariable("LLM_MODEL") is { Length: > 0 })
+                psi.Environment["LLM_MODEL"] = OllamaService.ConfiguredModel;
             psi.Environment["RUST_LOG"] = Environment.GetEnvironmentVariable("RUST_LOG") ?? "warn";
             // Mensagens de progresso no idioma da interface.
             psi.Environment["A11Y_LANG"] = CultureInfo.CurrentUICulture.Name;

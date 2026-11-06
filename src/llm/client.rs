@@ -62,20 +62,6 @@ impl OpenAiClient {
         }
     }
 
-    /// Lê `LLM_BASE_URL`, `LLM_API_KEY` e `LLM_MODEL`.
-    pub fn from_env() -> Result<Self> {
-        let base_url = std::env::var("LLM_BASE_URL")
-            .unwrap_or_else(|_| "https://api.openai.com/v1".to_string());
-        let api_key = std::env::var("LLM_API_KEY").map_err(|_| LlmError::MissingEnv("LLM_API_KEY"))?;
-        let model = std::env::var("LLM_MODEL").unwrap_or_else(|_| "gpt-4o-mini".to_string());
-
-        if model.trim().is_empty() {
-            return Err(LlmError::MissingEnv("LLM_MODEL").into());
-        }
-
-        Ok(Self::new(base_url, api_key, model))
-    }
-
     pub fn model(&self) -> &str {
         &self.model
     }
@@ -100,10 +86,17 @@ impl OpenAiClient {
         struct List {
             data: Vec<Item>,
         }
-        let list: List = self
+        let mut req = self
             .http
             .get(format!("{}/models", self.base_url))
-            .bearer_auth(&self.api_key)
+            .bearer_auth(&self.api_key);
+        // A rota /models nativa da Anthropic autentica por x-api-key, não por Bearer.
+        if self.base_url.contains("api.anthropic.com") {
+            req = req
+                .header("x-api-key", &self.api_key)
+                .header("anthropic-version", "2023-06-01");
+        }
+        let list: List = req
             .timeout(Duration::from_secs(5))
             .send()
             .await
@@ -139,8 +132,8 @@ impl OpenAiClient {
             if status.as_u16() == 404 && body.contains("not found") {
                 return Err(anyhow!(
                     "modelo '{}' não encontrado no backend {}. \
-                     Rode `ollama list` e defina LLM_MODEL com um nome válido \
-                     (ex: set LLM_MODEL=qwen2.5:7b). Detalhe: {}",
+                     Defina LLM_MODEL com um nome válido para esse provedor \
+                     (no Ollama, veja `ollama list`). Detalhe: {}",
                     request.model,
                     self.base_url,
                     truncate(&body, 400)
@@ -195,65 +188,105 @@ impl LlmBackend for OpenAiClient {
     }
 }
 
-/// Cliente Ollama (API OpenAI-compatible em `/v1`).
-#[derive(Debug, Clone)]
-pub struct OllamaClient {
-    inner: OpenAiClient,
+pub const PROVIDERS: &str =
+    "ollama, openai, anthropic (claude), nvidia, gemini, groq, openrouter, deepseek, mistral, custom";
+
+/// (URL base, variável da chave, modelo padrão) de cada provedor com API OpenAI-compatible.
+/// Chave vazia = provedor local, não exige chave.
+fn preset(provider: &str) -> Option<(&'static str, &'static str, &'static str)> {
+    Some(match provider {
+        "ollama" => ("http://127.0.0.1:11434/v1", "", "qwen2.5:7b"),
+        "openai" => ("https://api.openai.com/v1", "OPENAI_API_KEY", "gpt-4o-mini"),
+        "anthropic" | "claude" => ("https://api.anthropic.com/v1", "ANTHROPIC_API_KEY", "claude-sonnet-5-5"),
+        "nvidia" => ("https://integrate.api.nvidia.com/v1", "NVIDIA_API_KEY", "nvidia/nemotron-3-super-120b-a12b"),
+        "gemini" | "google" => (
+            "https://generativelanguage.googleapis.com/v1beta/openai",
+            "GEMINI_API_KEY",
+            "gemini-2.5-flash",
+        ),
+        "groq" => ("https://api.groq.com/openai/v1", "GROQ_API_KEY", "llama-3.3-70b-versatile"),
+        "openrouter" => ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", "openrouter/auto"),
+        "deepseek" => ("https://api.deepseek.com/v1", "DEEPSEEK_API_KEY", "deepseek-chat"),
+        "mistral" => ("https://api.mistral.ai/v1", "MISTRAL_API_KEY", "mistral-small-latest"),
+        // Qualquer outro servidor OpenAI-compatible (LM Studio, vLLM, Azure...): exige LLM_BASE_URL e LLM_MODEL.
+        "custom" => ("", "", ""),
+        _ => return None,
+    })
 }
 
-impl OllamaClient {
-    pub fn from_env() -> Result<Self> {
-        let base_url = std::env::var("LLM_BASE_URL")
-            .unwrap_or_else(|_| "http://127.0.0.1:11434/v1".to_string());
-        let api_key = std::env::var("LLM_API_KEY").unwrap_or_else(|_| "ollama".to_string());
-        let model = std::env::var("LLM_MODEL").unwrap_or_else(|_| "qwen2.5:7b".to_string());
+/// Monta o cliente a partir de `LLM_PROVIDER`; `LLM_BASE_URL`, `LLM_API_KEY` e `LLM_MODEL` sobrescrevem o preset.
+fn resolve(get: impl Fn(&str) -> Option<String>) -> Result<OpenAiClient> {
+    let get = |k: &str| get(k).map(|v| v.trim().to_string()).filter(|v| !v.is_empty());
+    let provider = get("LLM_PROVIDER").unwrap_or_else(|| "ollama".into()).to_lowercase();
+    let (url, key_var, model) = preset(&provider)
+        .ok_or_else(|| anyhow!("LLM_PROVIDER '{provider}' desconhecido. Use um destes: {PROVIDERS}"))?;
 
-        Ok(Self {
-            inner: OpenAiClient::new(base_url, api_key, model),
-        })
-    }
-
-    pub fn model(&self) -> &str {
-        self.inner.model()
-    }
-
-    pub fn into_inner(self) -> OpenAiClient {
-        self.inner
-    }
+    let base_url = get("LLM_BASE_URL").or_else(|| (!url.is_empty()).then(|| url.into()))
+        .ok_or(LlmError::MissingEnv("LLM_BASE_URL"))?;
+    let model = get("LLM_MODEL").or_else(|| (!model.is_empty()).then(|| model.into()))
+        .ok_or(LlmError::MissingEnv("LLM_MODEL"))?;
+    let api_key = match get("LLM_API_KEY").or_else(|| (!key_var.is_empty()).then(|| get(key_var)).flatten()) {
+        Some(k) => k,
+        None if key_var.is_empty() => "local".into(),
+        None => return Err(LlmError::MissingEnv(key_var).into()),
+    };
+    Ok(OpenAiClient::new(base_url, api_key, model))
 }
 
-#[async_trait]
-impl LlmBackend for OllamaClient {
-    fn model_name(&self) -> &str {
-        self.inner.model_name()
-    }
-
-    async fn chat(&self, request: ChatRequest) -> Result<ChatResponse> {
-        self.inner.chat(request).await
-    }
-}
-
-/// Escolhe o backend a partir de `LLM_PROVIDER` (`ollama` | `openai`, default: ollama).
+/// Backend escolhido por `LLM_PROVIDER` (padrão: ollama).
 pub fn backend_from_env() -> Result<Box<dyn LlmBackend>> {
-    let provider = std::env::var("LLM_PROVIDER")
-        .unwrap_or_else(|_| "ollama".to_string())
-        .to_lowercase();
-
-    match provider.as_str() {
-        "openai" | "nvidia" => Ok(Box::new(OpenAiClient::from_env()?)),
-        _ => Ok(Box::new(OllamaClient::from_env()?)),
-    }
+    Ok(Box::new(shared_openai_compatible_from_env()?))
 }
 
 /// Cliente concreto compartilhado (MCP handler precisa de tipo `Clone`).
 pub fn shared_openai_compatible_from_env() -> Result<OpenAiClient> {
-    let provider = std::env::var("LLM_PROVIDER")
-        .unwrap_or_else(|_| "ollama".to_string())
-        .to_lowercase();
+    resolve(|k| std::env::var(k).ok())
+}
 
-    match provider.as_str() {
-        "openai" | "nvidia" => OpenAiClient::from_env(),
-        _ => Ok(OllamaClient::from_env()?.into_inner()),
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn with(vars: &[(&str, &str)]) -> Result<OpenAiClient> {
+        let map: HashMap<String, String> = vars.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
+        resolve(|k| map.get(k).cloned())
+    }
+
+    #[test]
+    fn padrao_e_ollama_sem_chave() {
+        let c = with(&[]).unwrap();
+        assert_eq!(c.base_url, "http://127.0.0.1:11434/v1");
+        assert_eq!(c.model, "qwen2.5:7b");
+    }
+
+    #[test]
+    fn provedor_usa_chave_propria_e_preset() {
+        let c = with(&[("LLM_PROVIDER", "Claude"), ("ANTHROPIC_API_KEY", "sk-ant")]).unwrap();
+        assert_eq!(c.base_url, "https://api.anthropic.com/v1");
+        assert_eq!(c.api_key, "sk-ant");
+        assert_eq!(c.model, "claude-sonnet-5-5");
+    }
+
+    #[test]
+    fn llm_vars_sobrescrevem_preset() {
+        let c = with(&[
+            ("LLM_PROVIDER", "nvidia"),
+            ("LLM_API_KEY", "k"),
+            ("NVIDIA_API_KEY", "ignorada"),
+            ("LLM_MODEL", "x/y"),
+        ])
+        .unwrap();
+        assert_eq!(c.api_key, "k");
+        assert_eq!(c.model, "x/y");
+        assert_eq!(c.base_url, "https://integrate.api.nvidia.com/v1");
+    }
+
+    #[test]
+    fn erros_claros() {
+        assert!(with(&[("LLM_PROVIDER", "groq")]).unwrap_err().to_string().contains("GROQ_API_KEY"));
+        assert!(with(&[("LLM_PROVIDER", "xyz")]).unwrap_err().to_string().contains("desconhecido"));
+        assert!(with(&[("LLM_PROVIDER", "custom")]).unwrap_err().to_string().contains("LLM_BASE_URL"));
     }
 }
 

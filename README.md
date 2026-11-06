@@ -233,6 +233,8 @@ Depois de instalar, o executável fica em `%LOCALAPPDATA%\Programs\Uirapuru\agen
 }
 ```
 
+Para usar uma API na nuvem em vez do Ollama, troque `LLM_MODEL` no `env` por, por exemplo, `"LLM_PROVIDER": "claude"` e `"ANTHROPIC_API_KEY": "sua-chave"`. A lista de provedores aceitos está na tabela "Provedores de IA", na seção de desenvolvimento.
+
 **Claude Code:**
 
 ```powershell
@@ -330,15 +332,32 @@ desktop/
 
 | Variável         | Padrão                      |
 | ---------------- | --------------------------- |
-| `LLM_PROVIDER`   | `ollama` (também `openai`, `nvidia`) |
-| `LLM_MODEL`      | `qwen2.5:7b`                |
-| `LLM_BASE_URL`   | `http://127.0.0.1:11434/v1` |
-| `LLM_API_KEY`    | `ollama`                    |
+| `LLM_PROVIDER`   | `ollama` (veja a tabela abaixo) |
+| `LLM_MODEL`      | o modelo padrão do provedor |
+| `LLM_BASE_URL`   | a URL do provedor           |
+| `LLM_API_KEY`    | a chave própria do provedor (tabela abaixo) |
 | `A11Y_WORKSPACE` | pasta atual (modos MCP e `chat`) |
 | `A11Y_AGENT_EXE` | busca automática do binário |
 | `A11Y_SANDBOX`   | `host` (também `docker`)    |
 | `A11Y_SANDBOX_IMAGE` | `alpine:3`              |
 | `A11Y_LANG`      | idioma da interface (o app envia); senão `LC_ALL`/`LANG`; senão pt-BR. Aceita `en` |
+
+**Provedores de IA.** O padrão é o Ollama, que roda no seu computador. Para usar uma API na nuvem, defina `LLM_PROVIDER` e a chave do provedor. `LLM_MODEL`, `LLM_BASE_URL` e `LLM_API_KEY` sempre têm prioridade sobre os valores da tabela.
+
+| `LLM_PROVIDER` | Chave | Modelo padrão |
+| --- | --- | --- |
+| `ollama` | nenhuma (local) | `qwen2.5:7b` |
+| `anthropic` ou `claude` | `ANTHROPIC_API_KEY` | `claude-sonnet-5-5` |
+| `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| `nvidia` | `NVIDIA_API_KEY` | `nvidia/nemotron-3-super-120b-a12b` |
+| `gemini` ou `google` | `GEMINI_API_KEY` | `gemini-2.5-flash` |
+| `groq` | `GROQ_API_KEY` | `llama-3.3-70b-versatile` |
+| `openrouter` | `OPENROUTER_API_KEY` | `openrouter/auto` |
+| `deepseek` | `DEEPSEEK_API_KEY` | `deepseek-chat` |
+| `mistral` | `MISTRAL_API_KEY` | `mistral-small-latest` |
+| `custom` | `LLM_API_KEY` (opcional) | exige `LLM_BASE_URL` e `LLM_MODEL` (LM Studio, vLLM, Azure etc.) |
+
+Com uma API na nuvem, o texto que você pede para simplificar sai do seu computador e vai para o provedor.
 
 </details>
 
